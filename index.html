@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trading Diary - MVP</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>DIARIO DE TRADE - Remora Trader</title>
     <style>
         * {
             margin: 0;
@@ -526,7 +529,8 @@
     
     <div class="container">
         <div class="header">
-            <h1>📊 Trading Diary</h1>
+            <h1>📊 DIÁRIO DE TRADE</h1>
+            <h2 style="font-size: 1.5rem; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">REMORA TRADER</h2>
             <p>Registre seus trades e acompanhe sua performance de forma simples</p>
         </div>
 
@@ -1128,10 +1132,15 @@
         }
 
         function _0x7b5e() {
-            if(_0x8c4e() !== _0x6f3e) { _0x9f2e(); return; }
+            console.log('📅 Renderizando calendário...');
             
             const calendar = document.getElementById('calendar');
             const monthYear = document.getElementById('currentMonth');
+            
+            if (!calendar || !monthYear) {
+                console.error('❌ Elementos do calendário não encontrados');
+                return;
+            }
             
             const year = _0x3c8f.getFullYear();
             const month = _0x3c8f.getMonth();
@@ -1157,7 +1166,6 @@
             
             // Get first day of month and start date
             const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
             const startDate = new Date(firstDay);
             startDate.setDate(startDate.getDate() - firstDay.getDay());
             
@@ -1196,6 +1204,8 @@
                 calendar.appendChild(dayCell);
                 current.setDate(current.getDate() + 1);
             }
+            
+            console.log('✅ Calendário renderizado com', calendar.children.length, 'elementos');
         }
 
         function _0x5e9a2c(direction) {
@@ -1258,12 +1268,14 @@
         document.getElementById('quantity').addEventListener('input', _0x6c9e);
 
         function _0x6c9e() {
-            if(_0x2a5f) { _0x9f2e(); return; }
+            console.log('🧮 Calculando resultado automático...');
             
             const entryPrice = parseFloat(document.getElementById('entryPrice').value) || 0;
             const exitPrice = parseFloat(document.getElementById('exitPrice').value) || 0;
             const quantity = parseFloat(document.getElementById('quantity').value) || 0;
             const currency = document.getElementById('currency').value;
+            
+            console.log('Valores:', { entryPrice, exitPrice, quantity, currency });
             
             if (entryPrice && exitPrice && quantity) {
                 let result = (exitPrice - entryPrice) * quantity;
@@ -1271,6 +1283,8 @@
                 // Set precision based on currency type
                 const precision = (currency === 'PTS' || currency === 'PIPS') ? 1 : 2;
                 document.getElementById('result').value = result.toFixed(precision);
+                
+                console.log('Resultado calculado:', result);
                 
                 // Auto-select profit/loss button
                 if (result > 0) {
@@ -1339,24 +1353,42 @@
             }
         }
 
-        // Initialize everything
-        setTimeout(() => {
-            _0x4f8c(); // Set placeholder
-            _0x3d8e(); // Update dashboard
+        // Force immediate initialization - CACHE BUSTER v2.1
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 REMORA TRADER - Inicializando v2.1');
             
-            // Force calendar render if needed
-            const calendarElement = document.getElementById('calendar');
-            if (calendarElement && calendarElement.children.length === 0) {
+            // Force set today's date
+            const today = new Date();
+            document.getElementById('date').valueAsDate = today;
+            
+            // Force currency load
+            const savedCurrency = localStorage.getItem('_0x7e8d') || 'BRL';
+            document.getElementById('currency').value = savedCurrency;
+            _0x8e9f = savedCurrency;
+            
+            // Force placeholder update
+            _0x4f8c();
+            
+            // Force dashboard update
+            setTimeout(() => {
+                _0x3d8e();
+                console.log('✅ Dashboard atualizado');
+            }, 200);
+            
+            // Force calendar update
+            setTimeout(() => {
                 _0x7b5e();
-            }
-            
-            // Debug info for localhost only
-            if (_0x5b2e.includes('localhost') || _0x5b2e.includes('127.0.0.1')) {
-                console.log('🚀 Trading Diary initialized');
-                console.log('📊 Trades:', _0x7f4e.length);
-                console.log('💰 Currency:', _0x8e9f);
-            }
-        }, 100);
+                console.log('📅 Calendário renderizado');
+            }, 400);
+        });
+
+        // Also run initialization immediately
+        setTimeout(() => {
+            const today = new Date();
+            document.getElementById('date').valueAsDate = today;
+            _0x4f8c();
+            _0x3d8e();
+        }, 50);
 
         // Focus hint for new users
         if (_0x7f4e.length === 0) {
@@ -1383,8 +1415,11 @@
                 if (calendarDays.length === 0) {
                     _0x7b5e();
                 }
+                console.log('🎯 REMORA TRADER v2.1 - Totalmente carregado!');
             }
         }, 3000);
+        
+        // VERSION STAMP: 2025-07-01-16:30 REMORA TRADER v2.1
         
     </script>
 </body>
