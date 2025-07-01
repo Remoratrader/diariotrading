@@ -794,7 +794,10 @@
         let _0x5a7c = {};
         let _0x8e9f = localStorage.getItem('_0x7e8d') || 'BRL'; // Default currency
         
-        document.getElementById('date').valueAsDate = new Date();
+        // Set today's date as default
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        document.getElementById('date').valueAsDate = today;
         document.getElementById('currency').value = _0x8e9f;
         
         // Theme handler
@@ -841,11 +844,16 @@
         });
 
         // Load saved theme
-        const _0x6d9c = localStorage.getItem('_0x4d8f');
-        if (_0x6d9c === 'true') {
+        const savedTheme = localStorage.getItem('_0x4d8f');
+        if (savedTheme === 'true') {
             document.body.classList.add('dark');
             document.querySelector('.theme-toggle').textContent = '☀️';
         }
+
+        // Make sure variables are properly initialized
+        if (!_0x7f4e) _0x7f4e = [];
+        if (!_0x5a7c) _0x5a7c = {};
+        if (!_0x8e9f) _0x8e9f = 'BRL';
         
         // Export function
         function _0x9a7e6f() {
@@ -971,7 +979,12 @@
             if(_0x8c4e() !== _0x6f3e) { _0x9f2e(); return; }
             
             document.getElementById('tradeForm').reset();
-            document.getElementById('date').valueAsDate = new Date();
+            
+            // Always set today's date as default
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            document.getElementById('date').valueAsDate = today;
+            
             document.getElementById('currency').value = _0x8e9f; // Maintain currency selection
             document.querySelectorAll('.quick-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById('result').style.borderColor = '';
@@ -992,15 +1005,32 @@
         }
 
         function _0x3d8e() {
-            if(_0x8c4e() !== _0x6f3e) { _0x9f2e(); return; }
-            
-            _0x8f4c();
-            _0x2e6d();
-            _0x9c3a();
-            _0x7b5e();
+            try {
+                if(_0x8c4e() !== _0x6f3e) { _0x9f2e(); return; }
+                
+                _0x8f4c(); // Calculate daily P&L
+                _0x2e6d(); // Update metrics
+                _0x9c3a(); // Update trades list
+                _0x7b5e(); // Update calendar
+            } catch(error) {
+                console.error('Dashboard update error:', error);
+                // Fallback - try updating again
+                setTimeout(() => {
+                    try {
+                        _0x8f4c();
+                        _0x2e6d();
+                        _0x9c3a();
+                        _0x7b5e();
+                    } catch(e) {
+                        console.error('Fallback update failed:', e);
+                    }
+                }, 1000);
+            }
         }
 
         function _0x8f4c() {
+            if(_0x8c4e() !== _0x6f3e) { _0x9f2e(); return; }
+            
             _0x5a7c = {};
             _0x7f4e.forEach(trade => {
                 const date = trade.date;
@@ -1034,44 +1064,46 @@
         }
 
         function _0x9c3a() {
-            const _0x5f8d = document.getElementById('tradesContainer');
+            if(_0x8c4e() !== _0x6f3e) { _0x9f2e(); return; }
+            
+            const container = document.getElementById('tradesContainer');
             
             if (_0x7f4e.length === 0) {
-                _0x5f8d.innerHTML = '<p style="text-align: center; color: #666; margin: 20px 0;">Nenhum trade registrado ainda</p>';
+                container.innerHTML = '<p style="text-align: center; color: #666; margin: 20px 0;">Nenhum trade registrado ainda</p>';
                 return;
             }
 
-            const _0x6e7c = _0x7f4e.slice(-5).reverse();
+            const lastTrades = _0x7f4e.slice(-5).reverse();
             
-            _0x5f8d.innerHTML = _0x6e7c.map(trade => {
-                const _0x8a9f = trade.entryTime || trade.exitTime ? 
+            container.innerHTML = lastTrades.map(trade => {
+                const timeInfo = trade.entryTime || trade.exitTime ? 
                     `• ${trade.entryTime || '?'} → ${trade.exitTime || '?'}` : '';
-                const _0x4c6e = trade.notes ? `<br><small>📝 ${trade.notes}</small>` : '';
+                const notesInfo = trade.notes ? `<br><small>📝 ${trade.notes}</small>` : '';
                 
                 // Format result with trade's currency
-                const _0x2f8c = trade.currency || 'BRL';
-                let _0x5e9c = '';
-                switch(_0x2f8c) {
+                const tradeCurrency = trade.currency || 'BRL';
+                let resultText = '';
+                switch(tradeCurrency) {
                     case 'BRL':
-                        _0x5e9c = new Intl.NumberFormat('pt-BR', {
+                        resultText = new Intl.NumberFormat('pt-BR', {
                             style: 'currency',
                             currency: 'BRL'
                         }).format(trade.result);
                         break;
                     case 'USD':
-                        _0x5e9c = new Intl.NumberFormat('en-US', {
+                        resultText = new Intl.NumberFormat('en-US', {
                             style: 'currency',
                             currency: 'USD'
                         }).format(trade.result);
                         break;
                     case 'PTS':
-                        _0x5e9c = `${trade.result >= 0 ? '' : '-'}${Math.abs(trade.result).toFixed(1)} pts`;
+                        resultText = `${trade.result >= 0 ? '' : '-'}${Math.abs(trade.result).toFixed(1)} pts`;
                         break;
                     case 'PIPS':
-                        _0x5e9c = `${trade.result >= 0 ? '' : '-'}${Math.abs(trade.result).toFixed(1)} pips`;
+                        resultText = `${trade.result >= 0 ? '' : '-'}${Math.abs(trade.result).toFixed(1)} pips`;
                         break;
                     default:
-                        _0x5e9c = trade.result.toFixed(2);
+                        resultText = trade.result.toFixed(2);
                 }
                 
                 return `
@@ -1079,14 +1111,14 @@
                         <div class="trade-info">
                             <div class="trade-symbol">${trade.symbol}</div>
                             <div class="trade-details">
-                                ${_0x3e9d(trade.date)} ${_0x8a9f} • ${trade.quantity}x • 
+                                ${_0x3e9d(trade.date)} ${timeInfo} • ${trade.quantity}x • 
                                 R$ ${trade.entryPrice.toFixed(2)} → R$ ${trade.exitPrice.toFixed(2)}
-                                ${_0x4c6e}
+                                ${notesInfo}
                             </div>
                         </div>
                         <div style="display: flex; align-items: center;">
                             <div class="trade-result ${trade.result >= 0 ? 'positive' : 'negative'}">
-                                ${_0x5e9c}
+                                ${resultText}
                             </div>
                             <button class="delete-btn" onclick="_0x6e4f8a(${trade.id})">🗑️</button>
                         </div>
@@ -1096,110 +1128,128 @@
         }
 
         function _0x7b5e() {
-            const _0x5c8f = document.getElementById('calendar');
-            const _0x2e9d = document.getElementById('currentMonth');
+            if(_0x8c4e() !== _0x6f3e) { _0x9f2e(); return; }
             
-            const _0x6f4a = _0x3c8f.getFullYear();
-            const _0x8d7c = _0x3c8f.getMonth();
+            const calendar = document.getElementById('calendar');
+            const monthYear = document.getElementById('currentMonth');
             
-            const _0x9e5f = [
+            const year = _0x3c8f.getFullYear();
+            const month = _0x3c8f.getMonth();
+            
+            const monthNames = [
                 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
                 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
             ];
             
-            _0x2e9d.textContent = `${_0x9e5f[_0x8d7c]} ${_0x6f4a}`;
+            monthYear.textContent = `${monthNames[month]} ${year}`;
             
-            _0x5c8f.innerHTML = '';
+            // Clear calendar
+            calendar.innerHTML = '';
             
-            const _0x4a7e = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-            _0x4a7e.forEach(day => {
-                const _0x3f6c = document.createElement('div');
-                _0x3f6c.className = 'calendar-header-cell';
-                _0x3f6c.textContent = day;
-                _0x5c8f.appendChild(_0x3f6c);
+            // Add day headers
+            const dayHeaders = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+            dayHeaders.forEach(day => {
+                const headerCell = document.createElement('div');
+                headerCell.className = 'calendar-header-cell';
+                headerCell.textContent = day;
+                calendar.appendChild(headerCell);
             });
             
-            const _0x7e9a = new Date(_0x6f4a, _0x8d7c, 1);
-            const _0x5d3f = new Date(_0x6f4a, _0x8d7c + 1, 0);
-            const _0x9c6e = new Date(_0x7e9a);
-            _0x9c6e.setDate(_0x9c6e.getDate() - _0x7e9a.getDay());
+            // Get first day of month and start date
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay());
             
-            const _0x8f2e = new Date(_0x9c6e);
+            // Generate calendar days (6 weeks = 42 days)
+            const current = new Date(startDate);
             for (let i = 0; i < 42; i++) {
-                const _0x4d7c = document.createElement('div');
-                _0x4d7c.className = 'calendar-day';
+                const dayCell = document.createElement('div');
+                dayCell.className = 'calendar-day';
                 
-                const _0x6e5a = _0x8f2e.getMonth() === _0x8d7c;
-                const _0x3a9f = _0x8f2e.toISOString().split('T')[0];
-                const _0x7f6c = _0x5a7c[_0x3a9f] || 0;
+                const isCurrentMonth = current.getMonth() === month;
+                const dateKey = current.toISOString().split('T')[0];
+                const dayPnL = _0x5a7c[dateKey] || 0;
                 
-                if (!_0x6e5a) {
-                    _0x4d7c.classList.add('other-month');
-                } else if (_0x7f6c > 0) {
-                    _0x4d7c.classList.add('profit');
-                } else if (_0x7f6c < 0) {
-                    _0x4d7c.classList.add('loss');
+                if (!isCurrentMonth) {
+                    dayCell.classList.add('other-month');
+                } else if (dayPnL > 0) {
+                    dayCell.classList.add('profit');
+                } else if (dayPnL < 0) {
+                    dayCell.classList.add('loss');
                 } else {
-                    _0x4d7c.classList.add('neutral');
+                    dayCell.classList.add('neutral');
                 }
                 
-                const _0x8e6d = document.createElement('div');
-                _0x8e6d.className = 'day-number';
-                _0x8e6d.textContent = _0x8f2e.getDate();
-                _0x4d7c.appendChild(_0x8e6d);
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'day-number';
+                dayNumber.textContent = current.getDate();
+                dayCell.appendChild(dayNumber);
                 
-                if (_0x6e5a && _0x7f6c !== 0) {
-                    const _0x5b9a = document.createElement('div');
-                    _0x5b9a.className = 'day-pnl';
-                    _0x5b9a.textContent = _0x4e9f(_0x7f6c, true);
-                    _0x4d7c.appendChild(_0x5b9a);
+                if (isCurrentMonth && dayPnL !== 0) {
+                    const pnlDisplay = document.createElement('div');
+                    pnlDisplay.className = 'day-pnl';
+                    pnlDisplay.textContent = _0x4e9f(dayPnL, true);
+                    dayCell.appendChild(pnlDisplay);
                 }
                 
-                _0x5c8f.appendChild(_0x4d7c);
-                _0x8f2e.setDate(_0x8f2e.getDate() + 1);
+                calendar.appendChild(dayCell);
+                current.setDate(current.getDate() + 1);
             }
         }
 
         function _0x5e9a2c(direction) {
             if(_0x2a5f) { _0x9f2e(); return; }
             
-            _0x3c8f.setMonth(_0x3c8f.getMonth() + direction);
-            _0x7b5e();
+            try {
+                _0x3c8f.setMonth(_0x3c8f.getMonth() + direction);
+                _0x7b5e();
+            } catch(error) {
+                console.error('Month navigation error:', error);
+                // Reset to current month if error
+                _0x3c8f = new Date();
+                _0x7b5e();
+            }
         }
 
         function _0x4e9f(value, short = false) {
-            const _0x9c7f = Math.abs(value);
-            const _0x6d8e = value >= 0 ? '' : '-';
-            
-            switch(_0x8e9f) {
-                case 'BRL':
-                    return new Intl.NumberFormat('pt-BR', {
-                        style: 'currency',
-                        currency: 'BRL',
-                        minimumFractionDigits: short ? 0 : 2
-                    }).format(value);
-                    
-                case 'USD':
-                    return new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: 'USD',
-                        minimumFractionDigits: short ? 0 : 2
-                    }).format(value);
-                    
-                case 'PTS':
-                    return `${_0x6d8e}${_0x9c7f.toFixed(short ? 0 : 1)} pts`;
-                    
-                case 'PIPS':
-                    return `${_0x6d8e}${_0x9c7f.toFixed(short ? 0 : 1)} pips`;
-                    
-                default:
-                    return `${_0x6d8e}${_0x9c7f.toFixed(2)}`;
+            try {
+                const absValue = Math.abs(value);
+                const prefix = value >= 0 ? '' : '-';
+                
+                switch(_0x8e9f) {
+                    case 'BRL':
+                        return new Intl.NumberFormat('pt-BR', {
+                            style: 'currency',
+                            currency: 'BRL',
+                            minimumFractionDigits: short ? 0 : 2
+                        }).format(value);
+                        
+                    case 'USD':
+                        return new Intl.NumberFormat('en-US', {
+                            style: 'currency',
+                            currency: 'USD',
+                            minimumFractionDigits: short ? 0 : 2
+                        }).format(value);
+                        
+                    case 'PTS':
+                        return `${prefix}${absValue.toFixed(short ? 0 : 1)} pts`;
+                        
+                    case 'PIPS':
+                        return `${prefix}${absValue.toFixed(short ? 0 : 1)} pips`;
+                        
+                    default:
+                        return `${prefix}${absValue.toFixed(2)}`;
+                }
+            } catch(error) {
+                console.error('Currency format error:', error);
+                return value.toFixed(2);
             }
         }
 
         function _0x3e9d(dateStr) {
-            const _0x4f7e = new Date(dateStr + 'T00:00:00');
-            return _0x4f7e.toLocaleDateString('pt-BR');
+            const date = new Date(dateStr + 'T00:00:00');
+            return date.toLocaleDateString('pt-BR');
         }
 
         // Auto-calculate result
@@ -1210,24 +1260,22 @@
         function _0x6c9e() {
             if(_0x2a5f) { _0x9f2e(); return; }
             
-            const _0x5e8d = parseFloat(document.getElementById('entryPrice').value) || 0;
-            const _0x9f6c = parseFloat(document.getElementById('exitPrice').value) || 0;
-            const _0x3a7e = parseFloat(document.getElementById('quantity').value) || 0;
-            const _0x2f8c = document.getElementById('currency').value;
+            const entryPrice = parseFloat(document.getElementById('entryPrice').value) || 0;
+            const exitPrice = parseFloat(document.getElementById('exitPrice').value) || 0;
+            const quantity = parseFloat(document.getElementById('quantity').value) || 0;
+            const currency = document.getElementById('currency').value;
             
-            if (_0x5e8d && _0x9f6c && _0x3a7e) {
-                let _0x4c8f = (_0x9f6c - _0x5e8d) * _0x3a7e;
+            if (entryPrice && exitPrice && quantity) {
+                let result = (exitPrice - entryPrice) * quantity;
                 
-                // For points/pips, result is directly the difference
-                if (_0x2f8c === 'PTS' || _0x2f8c === 'PIPS') {
-                    _0x4c8f = (_0x9f6c - _0x5e8d) * _0x3a7e;
-                }
+                // Set precision based on currency type
+                const precision = (currency === 'PTS' || currency === 'PIPS') ? 1 : 2;
+                document.getElementById('result').value = result.toFixed(precision);
                 
-                document.getElementById('result').value = _0x4c8f.toFixed(_0x2f8c === 'PTS' || _0x2f8c === 'PIPS' ? 1 : 2);
-                
-                if (_0x4c8f > 0) {
+                // Auto-select profit/loss button
+                if (result > 0) {
                     _0x8d5f91('profit');
-                } else if (_0x4c8f < 0) {
+                } else if (result < 0) {
                     _0x8d5f91('loss');
                 }
             }
@@ -1274,28 +1322,43 @@
 
         // Initialize placeholder based on saved currency
         function _0x4f8c() {
-            const _0x5f9d = document.getElementById('result');
+            const resultField = document.getElementById('result');
             switch(_0x8e9f) {
                 case 'BRL':
-                    _0x5f9d.placeholder = '50.00';
+                    resultField.placeholder = '50.00';
                     break;
                 case 'USD':
-                    _0x5f9d.placeholder = '10.50';
+                    resultField.placeholder = '10.50';
                     break;
                 case 'PTS':
-                    _0x5f9d.placeholder = '25.0';
+                    resultField.placeholder = '25.0';
                     break;
                 case 'PIPS':
-                    _0x5f9d.placeholder = '15.5';
+                    resultField.placeholder = '15.5';
                     break;
             }
         }
 
-        // Initialize
-        _0x4f8c();
-        _0x3d8e();
+        // Initialize everything
+        setTimeout(() => {
+            _0x4f8c(); // Set placeholder
+            _0x3d8e(); // Update dashboard
+            
+            // Force calendar render if needed
+            const calendarElement = document.getElementById('calendar');
+            if (calendarElement && calendarElement.children.length === 0) {
+                _0x7b5e();
+            }
+            
+            // Debug info for localhost only
+            if (_0x5b2e.includes('localhost') || _0x5b2e.includes('127.0.0.1')) {
+                console.log('🚀 Trading Diary initialized');
+                console.log('📊 Trades:', _0x7f4e.length);
+                console.log('💰 Currency:', _0x8e9f);
+            }
+        }, 100);
 
-        // Focus hint
+        // Focus hint for new users
         if (_0x7f4e.length === 0) {
             setTimeout(() => {
                 if (_0x7f4e.length === 0 && !_0x2a5f) {
@@ -1314,6 +1377,12 @@
         setTimeout(() => {
             if(_0x8c4e() !== _0x6f3e || _0x2a5f) {
                 _0x9f2e();
+            } else {
+                // Force refresh calendar if empty
+                const calendarDays = document.querySelectorAll('.calendar-day');
+                if (calendarDays.length === 0) {
+                    _0x7b5e();
+                }
             }
         }, 3000);
         
