@@ -306,6 +306,120 @@
         .confidence-medium { background: linear-gradient(90deg, #ff9800, #f57c00); }
         .confidence-low { background: linear-gradient(90deg, #f44336, #d32f2f); }
 
+        .calendar-container {
+            background: #f8f9ff;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #e0e8ff;
+            margin-top: 20px;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .month-nav {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .month-nav:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        .calendar-header-cell {
+            text-align: center;
+            font-weight: bold;
+            padding: 10px 5px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+            cursor: pointer;
+            min-height: 60px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .calendar-day:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .calendar-day.profit {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .calendar-day.loss {
+            background: linear-gradient(135deg, #f44336, #e53935);
+            color: white;
+        }
+
+        .calendar-day.neutral {
+            background: #e0e8ff;
+            color: #666;
+        }
+
+        .calendar-day.other-month {
+            opacity: 0.3;
+        }
+
+        .calendar-day.today {
+            border: 2px solid #667eea;
+            font-weight: bold;
+        }
+
+        .day-number {
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .day-pnl {
+            font-size: 0.7rem;
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
+        .delete-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-left: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            background: #ff3838;
+            transform: scale(1.05);
+        }
+
         /* Dark mode styles */
         body.dark {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
@@ -352,6 +466,45 @@
         .dark .price-level {
             background: #3c3c6e;
             color: #e0e0e0;
+        }
+
+        .dark .calendar-container {
+            background: #3c3c6e;
+            border-color: #4a4a7a;
+        }
+
+        .dark .calendar-day.neutral {
+            background: #4a4a7a;
+            color: #e0e0e0;
+        }
+
+        .dark .calendar-header-cell {
+            color: #b0b0b0;
+        }
+
+        .dark .month-nav {
+            background: #667eea;
+        }
+
+        .dark .month-nav:hover {
+            background: #5a6fd8;
+        }
+
+        .dark .delete-btn {
+            background: #ff4757;
+        }
+
+        .dark .delete-btn:hover {
+            background: #ff3838;
+        }
+
+        .dark #tradesList > div {
+            background: #3c3c6e !important;
+            color: #e0e0e0 !important;
+        }
+
+        .dark #tradesList > div > div > div:first-child > div:last-child {
+            color: #b0b0b0 !important;
         }
 
         @media (max-width: 768px) {
@@ -447,6 +600,15 @@
                         <div id="tradesList">
                             <p style="text-align: center; color: #666; margin: 20px 0;">Nenhum trade registrado ainda</p>
                         </div>
+                        
+                        <div style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <button class="btn btn-secondary" onclick="exportTrades()">
+                                📥 Exportar Dados
+                            </button>
+                            <button class="btn btn-secondary" onclick="clearAllTrades()">
+                                🗑️ Limpar Tudo
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -470,11 +632,14 @@
                         </div>
                     </div>
 
-                    <div style="background: #f8f9ff; padding: 20px; border-radius: 10px;">
-                        <h3 style="margin-bottom: 15px;">📈 Performance Mensal</h3>
-                        <div id="monthlyChart" style="height: 200px; display: flex; align-items: center; justify-content: center; color: #666;">
-                            Execute alguns trades para ver o gráfico de performance
+                    <div class="calendar-container">
+                        <div class="calendar-header">
+                            <button class="month-nav" onclick="changeMonth(-1)">← Anterior</button>
+                            <h2 id="currentMonth">Julho 2025</h2>
+                            <button class="month-nav" onclick="changeMonth(1)">Próximo →</button>
                         </div>
+                        
+                        <div class="calendar-grid" id="calendar"></div>
                     </div>
                 </div>
             </div>
@@ -562,6 +727,8 @@
         // ===== VARIÁVEIS GLOBAIS =====
         let trades = JSON.parse(localStorage.getItem('remoraTradesV3') || '[]');
         let currentAnalysis = null;
+        let currentDate = new Date();
+        let dailyPnL = {};
 
         // Configurações de ativos
         const assetConfigs = {
@@ -645,6 +812,7 @@
         }
 
         function updateDashboard() {
+            calculateDailyPnL();
             const totalResult = trades.reduce((sum, trade) => sum + trade.result, 0);
             const wins = trades.filter(trade => trade.result > 0).length;
             const winRate = trades.length > 0 ? (wins / trades.length) * 100 : 0;
@@ -657,6 +825,181 @@
             document.getElementById('avgProfit').textContent = formatCurrency(avgProfit);
 
             updateTradesList();
+            updateCalendar();
+        }
+
+        function calculateDailyPnL() {
+            dailyPnL = {};
+            trades.forEach(trade => {
+                const date = trade.date;
+                if (!dailyPnL[date]) {
+                    dailyPnL[date] = 0;
+                }
+                dailyPnL[date] += trade.result;
+            });
+        }
+
+        function deleteTrade(id) {
+            if (confirm('🗑️ Excluir este trade?\n\nEsta ação não pode ser desfeita.')) {
+                trades = trades.filter(trade => trade.id !== id);
+                localStorage.setItem('remoraTradesV3', JSON.stringify(trades));
+                updateDashboard();
+                
+                // Feedback visual
+                alert('✅ Trade excluído com sucesso!');
+            }
+        }
+
+        function updateCalendar() {
+            const calendar = document.getElementById('calendar');
+            const monthYear = document.getElementById('currentMonth');
+            
+            if (!calendar || !monthYear) {
+                console.error('❌ Elementos do calendário não encontrados');
+                return;
+            }
+            
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            const monthNames = [
+                'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+            ];
+            
+            monthYear.textContent = `${monthNames[month]} ${year}`;
+            
+            // Limpar calendário
+            calendar.innerHTML = '';
+            
+            // Cabeçalhos dos dias
+            const dayHeaders = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+            dayHeaders.forEach(day => {
+                const headerCell = document.createElement('div');
+                headerCell.className = 'calendar-header-cell';
+                headerCell.textContent = day;
+                calendar.appendChild(headerCell);
+            });
+            
+            // Primeiro dia do mês
+            const firstDay = new Date(year, month, 1);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay());
+            
+            // Data de hoje para destacar
+            const today = new Date();
+            
+            // Gerar dias do calendário
+            const current = new Date(startDate);
+            for (let i = 0; i < 42; i++) {
+                const dayCell = document.createElement('div');
+                dayCell.className = 'calendar-day';
+                
+                const isCurrentMonth = current.getMonth() === month;
+                const isToday = current.toDateString() === today.toDateString();
+                const dateKey = current.toISOString().split('T')[0];
+                const dayPnL = dailyPnL[dateKey] || 0;
+                
+                if (!isCurrentMonth) {
+                    dayCell.classList.add('other-month');
+                } else if (dayPnL > 0) {
+                    dayCell.classList.add('profit');
+                } else if (dayPnL < 0) {
+                    dayCell.classList.add('loss');
+                } else {
+                    dayCell.classList.add('neutral');
+                }
+                
+                if (isToday) {
+                    dayCell.classList.add('today');
+                }
+                
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'day-number';
+                dayNumber.textContent = current.getDate();
+                dayCell.appendChild(dayNumber);
+                
+                if (isCurrentMonth && dayPnL !== 0) {
+                    const pnlDisplay = document.createElement('div');
+                    pnlDisplay.className = 'day-pnl';
+                    pnlDisplay.textContent = formatCurrencyShort(dayPnL);
+                    dayCell.appendChild(pnlDisplay);
+                }
+                
+                // Adicionar tooltip com detalhes
+                if (dayPnL !== 0) {
+                    dayCell.title = `${current.toLocaleDateString('pt-BR')}: ${formatCurrency(dayPnL)}`;
+                }
+                
+                calendar.appendChild(dayCell);
+                current.setDate(current.getDate() + 1);
+            }
+        }
+
+        function changeMonth(direction) {
+            currentDate.setMonth(currentDate.getMonth() + direction);
+            updateCalendar();
+        }
+
+        function formatCurrencyShort(value) {
+            const absValue = Math.abs(value);
+            const prefix = value >= 0 ? '' : '-';
+            
+            if (absValue >= 1000) {
+                return `${prefix}${(absValue/1000).toFixed(1)}k`;
+            } else {
+                return `${prefix}${absValue.toFixed(0)}`;
+            }
+        }
+
+        function exportTrades() {
+            if (trades.length === 0) {
+                alert('📊 Nenhum trade para exportar!\n\nRegistre alguns trades primeiro.');
+                return;
+            }
+            
+            const data = {
+                trades: trades,
+                summary: {
+                    totalTrades: trades.length,
+                    totalPnL: trades.reduce((sum, trade) => sum + trade.result, 0),
+                    winRate: trades.length > 0 ? (trades.filter(t => t.result > 0).length / trades.length) * 100 : 0,
+                    exportDate: new Date().toISOString()
+                },
+                version: '3.2'
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `remora-trades-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            
+            URL.revokeObjectURL(url);
+            
+            alert('📥 Dados exportados com sucesso!\n\nArquivo baixado para sua pasta de Downloads.');
+        }
+
+        function clearAllTrades() {
+            if (trades.length === 0) {
+                alert('📊 Não há trades para limpar!');
+                return;
+            }
+            
+            const confirmed = confirm(`🚨 ATENÇÃO!\n\nIsto apagará TODOS os ${trades.length} trades registrados.\n\nEsta ação NÃO pode ser desfeita!\n\nTem certeza?`);
+            
+            if (confirmed) {
+                const doubleConfirm = confirm('🔄 CONFIRMAÇÃO FINAL\n\nClique OK para apagar definitivamente TODOS os trades.');
+                
+                if (doubleConfirm) {
+                    trades = [];
+                    localStorage.removeItem('remoraTradesV3');
+                    updateDashboard();
+                    alert('✅ Todos os trades foram apagados!\n\nO diário foi resetado com sucesso.');
+                }
+            }
         }
 
         function updateTradesList() {
@@ -684,8 +1027,13 @@
                                     ${formatDate(trade.date)} • ${trade.quantity}x • ${trade.entryPrice.toFixed(2)} → ${trade.exitPrice.toFixed(2)}
                                 </div>
                             </div>
-                            <div style="font-weight: bold; font-size: 1.1rem; color: ${trade.result >= 0 ? '#4CAF50' : '#f44336'};">
-                                ${formatCurrency(trade.result)}
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="font-weight: bold; font-size: 1.1rem; color: ${trade.result >= 0 ? '#4CAF50' : '#f44336'};">
+                                    ${formatCurrency(trade.result)}
+                                </div>
+                                <button class="delete-btn" onclick="deleteTrade(${trade.id})" title="Excluir trade">
+                                    🗑️
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -754,6 +1102,10 @@
                 timeframe,
                 currentPrice: mockData.currentPrice,
                 variation5d: mockData.variation5d,
+                marketData: {
+                    unit: mockData.unit,
+                    decimals: mockData.decimals
+                },
                 analysis: {
                     wyckoff: wyckoffAnalysis,
                     smc: smcAnalysis,
@@ -763,46 +1115,77 @@
                 },
                 finalScore,
                 tradingSignal,
-                entryLevels: calculateEntryLevels(mockData.currentPrice, tradingSignal),
+                entryLevels: calculateEntryLevels(mockData.currentPrice, tradingSignal, mockData.unit, mockData.decimals),
                 timestamp: new Date().toISOString()
             };
         }
 
         function generateMockMarketData(symbol) {
-            // Simular dados realistas baseados no símbolo
-            const basePrice = getBasePrice(symbol);
-            const variation = (Math.random() - 0.5) * 0.1; // ±5%
+            // Usar dados mais realistas baseados no mercado atual
+            const marketData = getRealisticMarketData(symbol);
+            const variation = (Math.random() - 0.5) * 0.04; // ±2% (mais realista)
             
             return {
                 symbol,
-                currentPrice: basePrice * (1 + variation),
-                variation5d: (Math.random() - 0.5) * 0.2, // ±10%
-                volume: Math.random() * 1000000,
-                high24h: basePrice * (1 + Math.abs(variation) + 0.02),
-                low24h: basePrice * (1 - Math.abs(variation) - 0.02),
-                // Dados históricos simulados para análise
+                currentPrice: marketData.basePrice * (1 + variation),
+                variation5d: (Math.random() - 0.5) * 0.08, // ±4% em 5 dias
+                volume: marketData.avgVolume * (0.5 + Math.random()),
+                high24h: marketData.basePrice * (1 + Math.abs(variation) + 0.01),
+                low24h: marketData.basePrice * (1 - Math.abs(variation) - 0.01),
+                unit: marketData.unit,
+                decimals: marketData.decimals,
+                // Dados históricos mais realistas
                 prices: Array.from({length: 100}, (_, i) => 
-                    basePrice * (1 + Math.sin(i/10) * 0.1 + (Math.random() - 0.5) * 0.05)
+                    marketData.basePrice * (1 + Math.sin(i/15) * 0.03 + (Math.random() - 0.5) * 0.02)
                 ),
-                volumes: Array.from({length: 100}, () => Math.random() * 1000000)
+                volumes: Array.from({length: 100}, () => 
+                    marketData.avgVolume * (0.3 + Math.random() * 1.4)
+                )
             };
         }
 
-        function getBasePrice(symbol) {
-            const basePrices = {
-                'PETR4': 35.50,
-                'VALE3': 65.80,
-                'BTCUSD': 45000,
-                'ETHUSD': 2800,
-                'EURUSD': 1.1850,
-                'WINV25': 141500,
-                'WDOV25': 5.650
+        function getRealisticMarketData(symbol) {
+            // Dados realistas atualizados para Janeiro 2025
+            const marketData = {
+                // Futuros Brasileiros
+                'WINQ25': { basePrice: 141100, avgVolume: 500000, unit: 'pontos', decimals: 0 },
+                'WINJ25': { basePrice: 141200, avgVolume: 450000, unit: 'pontos', decimals: 0 },
+                'WINK25': { basePrice: 141300, avgVolume: 400000, unit: 'pontos', decimals: 0 },
+                'WINM25': { basePrice: 141400, avgVolume: 380000, unit: 'pontos', decimals: 0 },
+                'WINV25': { basePrice: 141500, avgVolume: 350000, unit: 'pontos', decimals: 0 },
+                
+                'WDOQ25': { basePrice: 5.650, avgVolume: 300000, unit: 'pontos', decimals: 3 },
+                'WDOJ25': { basePrice: 5.655, avgVolume: 280000, unit: 'pontos', decimals: 3 },
+                'WDOK25': { basePrice: 5.660, avgVolume: 260000, unit: 'pontos', decimals: 3 },
+                'WDOM25': { basePrice: 5.665, avgVolume: 250000, unit: 'pontos', decimals: 3 },
+                'WDOV25': { basePrice: 5.670, avgVolume: 240000, unit: 'pontos', decimals: 3 },
+                
+                // Ações Brasileiras
+                'PETR4': { basePrice: 35.50, avgVolume: 80000000, unit: 'BRL', decimals: 2 },
+                'VALE3': { basePrice: 65.80, avgVolume: 60000000, unit: 'BRL', decimals: 2 },
+                'ITUB4': { basePrice: 28.90, avgVolume: 45000000, unit: 'BRL', decimals: 2 },
+                'BBDC4': { basePrice: 25.40, avgVolume: 40000000, unit: 'BRL', decimals: 2 },
+                'MGLU3': { basePrice: 9.35, avgVolume: 35000000, unit: 'BRL', decimals: 2 },
+                
+                // Forex
+                'EURUSD': { basePrice: 1.0385, avgVolume: 0, unit: 'pips', decimals: 5 },
+                'GBPUSD': { basePrice: 1.2445, avgVolume: 0, unit: 'pips', decimals: 5 },
+                'USDJPY': { basePrice: 157.85, avgVolume: 0, unit: 'pips', decimals: 3 },
+                'AUDUSD': { basePrice: 0.6185, avgVolume: 0, unit: 'pips', decimals: 5 },
+                'USDCAD': { basePrice: 1.4485, avgVolume: 0, unit: 'pips', decimals: 5 },
+                
+                // Crypto
+                'BTCUSD': { basePrice: 102500, avgVolume: 25000, unit: 'USD', decimals: 2 },
+                'ETHUSD': { basePrice: 3280, avgVolume: 180000, unit: 'USD', decimals: 2 },
+                'SOLUSD': { basePrice: 245, avgVolume: 320000, unit: 'USD', decimals: 2 },
+                'ADAUSD': { basePrice: 0.895, avgVolume: 450000, unit: 'USD', decimals: 4 }
             };
-            return basePrices[symbol] || 100;
+            
+            return marketData[symbol] || { basePrice: 100, avgVolume: 10000, unit: 'BRL', decimals: 2 };
         }
 
         function analyzeWyckoff(data) {
-            // Análise Wyckoff simplificada
+            // Análise Wyckoff mais realista baseada no tipo de ativo
             const volumeRatio = data.volume / (data.volumes.reduce((a, b) => a + b, 0) / data.volumes.length);
             const pricePosition = (data.currentPrice - data.low24h) / (data.high24h - data.low24h);
             
@@ -810,23 +1193,38 @@
             let signals = [];
             let phase = 'FASE A - PARADA DE TENDÊNCIA';
             
-            if (volumeRatio > 2.0 && pricePosition > 0.8) {
+            // Thresholds baseados no tipo de ativo
+            const highVolumeThreshold = data.symbol.includes('WIN') || data.symbol.includes('WDO') ? 2.0 : 1.8;
+            const springUpthrust = data.symbol.includes('WIN') ? 0.002 : // WIN: 0.2%
+                                 data.symbol.includes('WDO') ? 0.005 : // WDO: 0.5%
+                                 0.015; // Outros: 1.5%
+            
+            if (volumeRatio > highVolumeThreshold && pricePosition > 0.8) {
                 signals.push('UPTHRUST: Rompimento falso de resistência com volume alto - VENDA');
                 score -= 25;
                 phase = 'FASE C - TESTE';
-            } else if (volumeRatio > 2.0 && pricePosition < 0.2) {
+            } else if (volumeRatio > highVolumeThreshold && pricePosition < 0.2) {
                 signals.push('SPRING: Rompimento falso de suporte com volume alto - COMPRA');
                 score += 25;
                 phase = 'FASE C - TESTE';
             } else if (volumeRatio > 1.5) {
-                if (data.variation5d > 0) {
+                if (data.variation5d > springUpthrust) {
                     signals.push('ACUMULAÇÃO: Volume elevado com preço subindo');
                     score += 15;
                     phase = 'FASE B - CONSTRUÇÃO';
-                } else {
+                } else if (data.variation5d < -springUpthrust) {
                     signals.push('DISTRIBUIÇÃO: Volume elevado com preço caindo');
                     score -= 15;
                     phase = 'FASE B - CONSTRUÇÃO';
+                }
+            }
+            
+            // Identificar mudança de caráter para futuros brasileiros
+            if (data.symbol.includes('WIN') || data.symbol.includes('WDO')) {
+                if (Math.abs(data.variation5d) > 0.01 && volumeRatio > 1.8) {
+                    const direction = data.variation5d > 0 ? 'BULLISH' : 'BEARISH';
+                    signals.push(`WYCKOFF: Mudança de caráter detectada - Viés ${direction}`);
+                    score += data.variation5d > 0 ? 10 : -10;
                 }
             }
             
@@ -834,7 +1232,7 @@
         }
 
         function analyzeSmartMoney(data) {
-            // Smart Money Concepts simplificado
+            // Smart Money Concepts baseado em dados mais realistas
             let score = 0;
             let signals = [];
             let structure = 'SIDEWAYS';
@@ -842,43 +1240,58 @@
             const priceRange = data.high24h - data.low24h;
             const currentPosition = (data.currentPrice - data.low24h) / priceRange;
             
-            // Simular Order Blocks
+            // Order Blocks mais realistas baseados no tipo de ativo
+            const orderBlockDistance = data.symbol.includes('WIN') ? 200 : // WIN: 200 pontos
+                                     data.symbol.includes('WDO') ? 0.020 : // WDO: 20 centavos  
+                                     data.symbol.includes('USD') ? 0.005 : // Forex: 5 pips
+                                     data.currentPrice * 0.01; // Ações: 1%
+            
             if (currentPosition > 0.7) {
-                signals.push(`SMC: Preço próximo a Order Block BEARISH - VENDA em ${data.high24h.toFixed(2)}`);
+                const orderBlockLevel = data.high24h - orderBlockDistance;
+                signals.push(`SMC: Preço próximo a Order Block BEARISH - VENDA em ${formatPrice(orderBlockLevel, data.unit, data.decimals)}`);
                 score -= 15;
                 structure = 'BEARISH';
             } else if (currentPosition < 0.3) {
-                signals.push(`SMC: Preço próximo a Order Block BULLISH - COMPRA em ${data.low24h.toFixed(2)}`);
+                const orderBlockLevel = data.low24h + orderBlockDistance;
+                signals.push(`SMC: Preço próximo a Order Block BULLISH - COMPRA em ${formatPrice(orderBlockLevel, data.unit, data.decimals)}`);
                 score += 15;
                 structure = 'BULLISH';
             }
             
-            // Simular Liquidity Sweep
-            if (data.variation5d > 0.05) {
+            // Liquidity Sweep baseado na variação e tipo de ativo
+            const significantMove = data.symbol.includes('WIN') ? 0.003 : // WIN: 0.3%
+                                  data.symbol.includes('WDO') ? 0.01 :  // WDO: 1%
+                                  0.02; // Outros: 2%
+            
+            if (data.variation5d > significantMove) {
                 signals.push('SMC: Liquidity Sweep BULLISH detectado - Smart Money comprou depois de pegar stops');
                 score += 20;
                 structure = 'BULLISH';
-            } else if (data.variation5d < -0.05) {
+            } else if (data.variation5d < -significantMove) {
                 signals.push('SMC: Liquidity Sweep BEARISH detectado - Smart Money vendeu depois de pegar stops');
                 score -= 20;
                 structure = 'BEARISH';
             }
             
-            // Confirmar estrutura
-            if (Math.abs(data.variation5d) > 0.03) {
-                signals.push(`SMC: Estrutura ${structure} confirmada`);
+            // Confirmar estrutura baseada na tendência
+            if (Math.abs(data.variation5d) > significantMove/2) {
+                if (data.variation5d > 0) {
+                    signals.push('SMC: Estrutura BULLISH confirmada (HH/HL)');
+                } else {
+                    signals.push('SMC: Estrutura BEARISH confirmada (LL/LH)');
+                }
             }
             
             return { score, signals, structure };
         }
 
         function analyzeElliottWave(data) {
-            // Elliott Wave simplificado
+            // Elliott Wave mais realista
             let score = 0;
             let signals = [];
             const waveCount = Math.floor(Math.random() * 20) + 10;
             
-            // Simular padrões de ondas
+            // Padrões de ondas baseados na variação atual
             if (data.variation5d > 0.03) {
                 signals.push('ELLIOTT: Padrão impulsivo de alta detectado - continuação esperada');
                 score += 15;
@@ -890,30 +1303,47 @@
                 score += 5;
             }
             
-            // Níveis de Fibonacci
+            // Níveis de Fibonacci mais realistas baseados no tipo de ativo
+            const high = data.high24h;
+            const low = data.low24h;
+            const diff = high - low;
+            
             const fibLevels = {
-                '0.236': data.high24h - 0.236 * (data.high24h - data.low24h),
-                '0.382': data.high24h - 0.382 * (data.high24h - data.low24h),
-                '0.618': data.high24h - 0.618 * (data.high24h - data.low24h)
+                '0.236': high - 0.236 * diff,
+                '0.382': high - 0.382 * diff,
+                '0.500': high - 0.500 * diff,
+                '0.618': high - 0.618 * diff,
+                '0.786': high - 0.786 * diff
             };
             
+            // Tolerância baseada no tipo de ativo
+            const tolerance = data.symbol.includes('WIN') ? 30 : // WIN: 30 pontos
+                            data.symbol.includes('WDO') ? 0.015 : // WDO: 1.5 centavos
+                            data.currentPrice * 0.008; // Outros: 0.8%
+            
             Object.entries(fibLevels).forEach(([level, price]) => {
-                if (Math.abs(data.currentPrice - price) / data.currentPrice < 0.01) {
-                    signals.push(`ELLIOTT: Preço próximo ao nível Fibonacci ${level} (${price.toFixed(2)})`);
-                    score += 10;
+                if (Math.abs(data.currentPrice - price) <= tolerance) {
+                    signals.push(`ELLIOTT: Preço próximo ao nível Fibonacci ${level} (${formatPrice(price, data.unit, data.decimals)})`);
+                    score += level === '0.618' ? 15 : level === '0.382' ? 12 : 8;
                 }
             });
             
-            return { score, signals, waveCount };
+            // Extensões de Fibonacci para targets
+            if (data.variation5d > 0.02) {
+                const extension161 = high + 0.618 * diff;
+                signals.push(`ELLIOTT: Target Fibonacci 161.8% em ${formatPrice(extension161, data.unit, data.decimals)}`);
+            }
+            
+            return { score, signals, waveCount, fibLevels };
         }
 
         function analyzePriceAction(data) {
-            // Price Action simplificado
+            // Price Action mais realista baseado no tipo de ativo
             let score = 0;
             let signals = [];
             const momentum = data.variation5d;
             
-            // Padrões de candlestick simulados
+            // Padrões de candlestick simulados (mais realistas)
             const patterns = ['Doji', 'Hammer', 'Shooting Star', 'Bullish Engulfing', 'Bearish Engulfing'];
             const randomPattern = patterns[Math.floor(Math.random() * patterns.length)];
             
@@ -939,25 +1369,54 @@
                     break;
             }
             
-            // Suporte e Resistência
-            const supportLevel = data.low24h * 1.01;
-            const resistanceLevel = data.high24h * 0.99;
+            // Suporte e Resistência baseados no tipo de ativo
+            let supportLevels = [];
+            let resistanceLevels = [];
             
-            if (Math.abs(data.currentPrice - resistanceLevel) / data.currentPrice < 0.02) {
-                signals.push(`PRICE ACTION: Preço próximo à resistência ${resistanceLevel.toFixed(2)}`);
-                score -= 10;
+            if (data.symbol.includes('WIN')) {
+                // WIN: Suportes/resistências em múltiplos de 50 ou 100 pontos
+                const currentRounded = Math.round(data.currentPrice / 100) * 100;
+                supportLevels = [currentRounded - 200, currentRounded - 100];
+                resistanceLevels = [currentRounded + 100, currentRounded + 200];
+            } else if (data.symbol.includes('WDO')) {
+                // WDO: Suportes/resistências em múltiplos de 0.050
+                const currentRounded = Math.round(data.currentPrice / 0.050) * 0.050;
+                supportLevels = [currentRounded - 0.100, currentRounded - 0.050];
+                resistanceLevels = [currentRounded + 0.050, currentRounded + 0.100];
+            } else {
+                // Outros ativos: baseado em % do preço atual
+                supportLevels = [data.currentPrice * 0.98, data.currentPrice * 0.99];
+                resistanceLevels = [data.currentPrice * 1.01, data.currentPrice * 1.02];
             }
             
-            if (Math.abs(data.currentPrice - supportLevel) / data.currentPrice < 0.02) {
-                signals.push(`PRICE ACTION: Preço próximo ao suporte ${supportLevel.toFixed(2)}`);
-                score += 10;
-            }
+            // Verificar proximidade aos níveis
+            const tolerance = data.symbol.includes('WIN') ? 50 : // WIN: 50 pontos
+                            data.symbol.includes('WDO') ? 0.020 : // WDO: 2 centavos
+                            data.currentPrice * 0.005; // Outros: 0.5%
             
-            // Momentum
-            if (momentum > 0.02) {
+            resistanceLevels.forEach(level => {
+                if (Math.abs(data.currentPrice - level) <= tolerance) {
+                    signals.push(`PRICE ACTION: Preço próximo à resistência ${formatPrice(level, data.unit, data.decimals)}`);
+                    score -= 10;
+                }
+            });
+            
+            supportLevels.forEach(level => {
+                if (Math.abs(data.currentPrice - level) <= tolerance) {
+                    signals.push(`PRICE ACTION: Preço próximo ao suporte ${formatPrice(level, data.unit, data.decimals)}`);
+                    score += 10;
+                }
+            });
+            
+            // Momentum baseado no tipo de ativo
+            const strongMomentum = data.symbol.includes('WIN') ? 0.005 : // WIN: 0.5%
+                                 data.symbol.includes('WDO') ? 0.01 :  // WDO: 1%
+                                 0.02; // Outros: 2%
+            
+            if (momentum > strongMomentum) {
                 signals.push('PRICE ACTION: Momentum forte de alta');
                 score += 15;
-            } else if (momentum < -0.02) {
+            } else if (momentum < -strongMomentum) {
                 signals.push('PRICE ACTION: Momentum forte de baixa');
                 score -= 15;
             }
@@ -1066,7 +1525,7 @@
             }
         }
 
-        function calculateEntryLevels(currentPrice, signal) {
+        function calculateEntryLevels(currentPrice, signal, unit, decimals) {
             let entry, stopLoss, target1, target2;
             
             if (signal.action === 'BUY' || signal.action === 'WEAK_BUY') {
@@ -1083,7 +1542,12 @@
                 entry = stopLoss = target1 = target2 = currentPrice;
             }
             
-            return { entry, stopLoss, target1, target2 };
+            return { 
+                entry: { value: entry, formatted: formatPrice(entry, unit, decimals) },
+                stopLoss: { value: stopLoss, formatted: formatPrice(stopLoss, unit, decimals) },
+                target1: { value: target1, formatted: formatPrice(target1, unit, decimals) },
+                target2: { value: target2, formatted: formatPrice(target2, unit, decimals) }
+            };
         }
 
         function displayAnalysisResults(analysis) {
@@ -1111,7 +1575,7 @@
                 </div>
                 <div class="metric-card">
                     <div class="metric-value">
-                        ${formatCurrency(analysis.currentPrice)}
+                        ${formatPrice(analysis.currentPrice, analysis.marketData.unit, analysis.marketData.decimals)}
                     </div>
                     <div class="metric-label">Preço Atual</div>
                 </div>
@@ -1133,7 +1597,7 @@
             report += `📋 RELATÓRIO COMPLETO - ${analysis.symbol}\n`;
             report += `${separator}\n\n`;
             
-            report += `💹 PREÇO ATUAL: ${formatCurrency(analysis.currentPrice)}\n`;
+            report += `💹 PREÇO ATUAL: ${formatPrice(analysis.currentPrice, analysis.marketData.unit, analysis.marketData.decimals)}\n`;
             report += `📈 VARIAÇÃO 5D: ${(analysis.variation5d * 100).toFixed(2)}%\n\n`;
             
             report += `🎯 SINAL FINAL: ${analysis.tradingSignal.signal}\n`;
@@ -1191,19 +1655,21 @@
             
             if (analysis.tradingSignal.action.includes('BUY')) {
                 report += `🟢 SETUP DE COMPRA:\n`;
-                report += `   📍 Entrada: ${formatCurrency(analysis.entryLevels.entry)}\n`;
-                report += `   🛡️ Stop Loss: ${formatCurrency(analysis.entryLevels.stopLoss)}\n`;
-                report += `   🎯 Take Profit: ${formatCurrency(analysis.entryLevels.target1)}\n`;
+                report += `   📍 Entrada: ${analysis.entryLevels.entry.formatted}\n`;
+                report += `   🛡️ Stop Loss: ${analysis.entryLevels.stopLoss.formatted}\n`;
+                report += `   🎯 Take Profit: ${analysis.entryLevels.target1.formatted}\n`;
                 report += `   📊 Risk/Reward: 1:2\n`;
             } else if (analysis.tradingSignal.action.includes('SELL')) {
                 report += `🔴 SETUP DE VENDA:\n`;
-                report += `   📍 Entrada: ${formatCurrency(analysis.entryLevels.entry)}\n`;
-                report += `   🛡️ Stop Loss: ${formatCurrency(analysis.entryLevels.stopLoss)}\n`;
-                report += `   🎯 Take Profit: ${formatCurrency(analysis.entryLevels.target1)}\n`;
+                report += `   📍 Entrada: ${analysis.entryLevels.entry.formatted}\n`;
+                report += `   🛡️ Stop Loss: ${analysis.entryLevels.stopLoss.formatted}\n`;
+                report += `   🎯 Take Profit: ${analysis.entryLevels.target1.formatted}\n`;
                 report += `   📊 Risk/Reward: 1:2\n`;
             } else {
                 report += `⏸️ AGUARDAR MELHOR OPORTUNIDADE\n`;
-                report += `   📍 Monitorar níveis: ${formatCurrency(analysis.currentPrice * 0.98)} - ${formatCurrency(analysis.currentPrice * 1.02)}\n`;
+                const monitorLow = formatPrice(analysis.currentPrice * 0.98, analysis.marketData.unit, analysis.marketData.decimals);
+                const monitorHigh = formatPrice(analysis.currentPrice * 1.02, analysis.marketData.unit, analysis.marketData.decimals);
+                report += `   📍 Monitorar níveis: ${monitorLow} - ${monitorHigh}\n`;
             }
             report += '\n';
             
@@ -1412,6 +1878,31 @@
 
         // ===== FUNÇÕES UTILITÁRIAS =====
 
+        function formatPrice(value, unit, decimals = 2) {
+            switch(unit) {
+                case 'pontos':
+                    if (decimals === 0) {
+                        return `${Math.round(value).toLocaleString('pt-BR')} pontos`;
+                    } else {
+                        return `${value.toFixed(decimals)} pontos`;
+                    }
+                case 'BRL':
+                    return new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL'
+                    }).format(value);
+                case 'USD':
+                    return new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD'
+                    }).format(value);
+                case 'pips':
+                    return value.toFixed(decimals);
+                default:
+                    return value.toFixed(decimals);
+            }
+        }
+
         function formatCurrency(value) {
             return new Intl.NumberFormat('pt-BR', {
                 style: 'currency',
@@ -1471,9 +1962,17 @@
             loadSavedTheme();
             updateDashboard();
             
-            console.log('🚀 REMORA TRADER v3.0 - Sistema Completo Carregado!');
+            console.log('🚀 REMORA TRADER v3.2 - Sistema Completo Carregado!');
             console.log('📊 Funcionalidades: Diário + Análise Multi-Confluência');
             console.log('🔍 Metodologias: Wyckoff, SMC, Elliott, Price Action, Fundamentalista');
+            console.log('💡 ATUALIZAÇÃO v3.2:');
+            console.log('   ✅ Calendário visual com P&L diário');
+            console.log('   ✅ Botões de exclusão nos trades');
+            console.log('   • Preços realistas baseados no mercado atual');
+            console.log('   • Formatação correta por tipo de ativo');
+            console.log('   • WIN: pontos | WDO: pontos | Ações: R$ | Crypto: US$ | Forex: pips');
+            console.log('📈 Exemplo: WINQ25 = ~141.100 pontos');
+            console.log('⚙️ Para dados 100% reais: integrar APIs (Alpha Vantage, etc.)');
         });
     </script>
 </body>
