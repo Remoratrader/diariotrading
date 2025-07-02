@@ -16,6 +16,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #333;
+            transition: all 0.3s ease;
         }
 
         .container {
@@ -34,6 +35,26 @@
             font-size: 2.5rem;
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            padding: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
         }
 
         .account-selector {
@@ -64,24 +85,18 @@
             font-size: 0.9rem;
         }
 
-        .theme-toggle {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(255,255,255,0.9);
-            border: none;
-            padding: 12px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 1.2rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            z-index: 1000;
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            margin-bottom: 30px;
         }
 
-        .theme-toggle:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        .form-card, .dashboard {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
 
         .privacy-note {
@@ -96,85 +111,6 @@
 
         .privacy-note strong {
             color: #1b5e20;
-        }
-
-        /* Dark mode styles */
-        body.dark {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #e0e0e0;
-        }
-
-        .dark .form-card,
-        .dark .dashboard {
-            background: #2c2c54;
-            color: #e0e0e0;
-        }
-
-        .dark .metric-card {
-            background: linear-gradient(135deg, #3c3c6e 0%, #2c2c54 100%);
-            border-color: #4a4a7a;
-        }
-
-        .dark .calendar-container {
-            background: #3c3c6e;
-            border-color: #4a4a7a;
-        }
-
-        .dark .form-group input,
-        .dark .form-group select {
-            background: #3c3c6e;
-            border-color: #4a4a7a;
-            color: #e0e0e0;
-        }
-
-        .dark .form-group input:focus,
-        .dark .form-group select:focus {
-            border-color: #667eea;
-        }
-
-        .dark .trade-item {
-            background: #3c3c6e;
-            color: #e0e0e0;
-        }
-
-        .dark .quick-btn {
-            background: #3c3c6e;
-            border-color: #4a4a7a;
-            color: #e0e0e0;
-        }
-
-        .dark .quick-btn:hover {
-            background: #4a4a7a;
-            border-color: #667eea;
-        }
-
-        .dark .privacy-note {
-            background: #2c4a2c;
-            border-color: #4CAF50;
-            color: #81c784;
-        }
-
-        .dark .theme-toggle {
-            background: rgba(44,44,84,0.9);
-            color: #e0e0e0;
-        }
-
-        .dark .account-selector {
-            background: rgba(44,44,84,0.3);
-        }
-
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 30px;
-            margin-bottom: 30px;
-        }
-
-        .form-card, .dashboard {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
 
         .form-group {
@@ -213,6 +149,7 @@
             cursor: pointer;
             width: 100%;
             margin-bottom: 10px;
+            transition: all 0.3s ease;
         }
 
         .btn:hover {
@@ -415,6 +352,7 @@
             cursor: pointer;
             text-align: center;
             font-weight: 600;
+            transition: all 0.3s ease;
         }
 
         .quick-btn.active {
@@ -437,6 +375,84 @@
             z-index: 999999;
             font-size: 2rem;
             text-align: center;
+        }
+
+        /* Dark mode styles */
+        body.dark {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+        }
+
+        .dark .form-card,
+        .dark .dashboard {
+            background: #2c2c54;
+            color: #e0e0e0;
+        }
+
+        .dark .metric-card {
+            background: linear-gradient(135deg, #3c3c6e 0%, #2c2c54 100%);
+            border-color: #4a4a7a;
+        }
+
+        .dark .calendar-container {
+            background: #3c3c6e;
+            border-color: #4a4a7a;
+        }
+
+        .dark .form-group input,
+        .dark .form-group select {
+            background: #3c3c6e;
+            border-color: #4a4a7a;
+            color: #e0e0e0;
+        }
+
+        .dark .form-group input:focus,
+        .dark .form-group select:focus {
+            border-color: #667eea;
+        }
+
+        .dark .trade-item {
+            background: #3c3c6e;
+            color: #e0e0e0;
+        }
+
+        .dark .quick-btn {
+            background: #3c3c6e;
+            border-color: #4a4a7a;
+            color: #e0e0e0;
+        }
+
+        .dark .quick-btn:hover {
+            background: #4a4a7a;
+            border-color: #667eea;
+        }
+
+        .dark .privacy-note,
+        .dark .conversion-info {
+            background: #2c4a2c;
+            border-color: #4CAF50;
+            color: #81c784;
+        }
+
+        .dark .theme-toggle {
+            background: rgba(44,44,84,0.9);
+            color: #e0e0e0;
+        }
+
+        .dark .account-selector {
+            background: rgba(44,44,84,0.3);
+        }
+
+        .dark .form-group label {
+            color: #e0e0e0;
+        }
+
+        .dark .metric-value {
+            color: #e0e0e0;
+        }
+
+        .dark .metric-label {
+            color: #b0b0b0;
         }
 
         @media (max-width: 768px) {
@@ -502,11 +518,11 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="entryPrice">Preço Entrada</label>
-                            <input type="number" id="entryPrice" name="entryPrice" placeholder="25.50" required>
+                            <input type="text" id="entryPrice" name="entryPrice" placeholder="25.50" required>
                         </div>
                         <div class="form-group">
                             <label for="exitPrice">Preço Saída</label>
-                            <input type="number" id="exitPrice" name="exitPrice" placeholder="26.00" required>
+                            <input type="text" id="exitPrice" name="exitPrice" placeholder="26.00" required>
                         </div>
                     </div>
 
@@ -528,7 +544,7 @@
 
                     <div class="form-group">
                         <label for="result">Resultado</label>
-                        <input type="number" id="result" name="result" placeholder="50.00" required readonly>
+                        <input type="text" id="result" name="result" placeholder="50.00" required readonly>
                     </div>
 
                     <div class="form-group">
@@ -659,47 +675,81 @@
             return assetConfigs[upperSymbol] || assetConfigs['default'];
         }
 
-        function calculateResult() {
-            const entryPriceInput = document.getElementById('entryPrice').value;
-            const exitPriceInput = document.getElementById('exitPrice').value;
-            const quantityInput = document.getElementById('quantity').value;
+        function onSymbolChange() {
             const symbol = document.getElementById('symbol').value.toUpperCase();
-            
-            // Verificar se todos os campos têm valores
-            if (!entryPriceInput || !exitPriceInput || !quantityInput) {
-                document.getElementById('result').value = '';
-                return;
-            }
-            
-            const entryPrice = parseFloat(entryPriceInput);
-            const exitPrice = parseFloat(exitPriceInput);
-            const quantity = parseFloat(quantityInput);
             const config = getAssetConfig(symbol);
+            const conversionInfo = document.getElementById('conversionInfo');
             
-            // Verificar se os valores são válidos
-            if (isNaN(entryPrice) || isNaN(exitPrice) || isNaN(quantity)) {
+            // Salvar novo ativo se tiver pelo menos 3 caracteres
+            if (symbol.length >= 3) {
+                saveNewAsset(symbol);
+            }
+            
+            // Atualizar placeholder baseado no tipo de ativo
+            const samplePrice = config.decimals === 3 ? '141.555' : 
+                               config.decimals === 5 ? '1.08125' : '25.50';
+            document.getElementById('entryPrice').placeholder = samplePrice;
+            document.getElementById('exitPrice').placeholder = samplePrice;
+            
+            // Auto-selecionar moeda
+            document.getElementById('currency').value = config.currency;
+            
+            // Mostrar info de conversão
+            if (config.pointValue !== 1 && config.currency === 'PTS') {
+                conversionInfo.style.display = 'block';
+                conversionInfo.innerHTML = `💡 ${config.name}: 1 ponto = R$ ${config.pointValue.toFixed(2)}`;
+            } else {
+                conversionInfo.style.display = 'none';
+            }
+            
+            calculateResult();
+        }
+
+        function calculateResult() {
+            try {
+                const entryPriceStr = document.getElementById('entryPrice').value.replace(',', '.');
+                const exitPriceStr = document.getElementById('exitPrice').value.replace(',', '.');
+                const quantityStr = document.getElementById('quantity').value;
+                const symbol = document.getElementById('symbol').value.toUpperCase();
+                
+                // Verificar se todos os campos têm valores
+                if (!entryPriceStr || !exitPriceStr || !quantityStr) {
+                    document.getElementById('result').value = '';
+                    return;
+                }
+                
+                const entryPrice = parseFloat(entryPriceStr);
+                const exitPrice = parseFloat(exitPriceStr);
+                const quantity = parseFloat(quantityStr);
+                const config = getAssetConfig(symbol);
+                
+                // Verificar se os valores são válidos
+                if (isNaN(entryPrice) || isNaN(exitPrice) || isNaN(quantity)) {
+                    document.getElementById('result').value = '';
+                    return;
+                }
+                
+                // Calcular diferença em pontos/pips/valor
+                let pointDifference = (exitPrice - entryPrice) * quantity;
+                
+                // Aplicar conversão se necessário
+                let finalResult = pointDifference;
+                if (config.pointValue !== 1) {
+                    finalResult = pointDifference * config.pointValue;
+                }
+                
+                // Sempre mostrar com 2 casas decimais para o resultado final
+                document.getElementById('result').value = finalResult.toFixed(2);
+                
+                // Auto-selecionar profit/loss
+                if (finalResult > 0) {
+                    quickSelect('profit');
+                } else if (finalResult < 0) {
+                    quickSelect('loss');
+                }
+            } catch (error) {
+                console.log('Erro no cálculo:', error);
                 document.getElementById('result').value = '';
-                return;
-            }
-            
-            // Calcular diferença em pontos/pips/valor
-            let pointDifference = (exitPrice - entryPrice) * quantity;
-            
-            // Aplicar conversão se necessário
-            let finalResult = pointDifference;
-            if (config.pointValue !== 1) {
-                finalResult = pointDifference * config.pointValue;
-            }
-            
-            // Definir precisão baseada no tipo de resultado (sempre 2 casas para valor final em reais)
-            const precision = 2;
-            document.getElementById('result').value = finalResult.toFixed(precision);
-            
-            // Auto-selecionar profit/loss
-            if (finalResult > 0) {
-                quickSelect('profit');
-            } else if (finalResult < 0) {
-                quickSelect('loss');
             }
         }
 
@@ -782,10 +832,10 @@
             const trade = {
                 id: Date.now(),
                 symbol: symbol,
-                entryPrice: parseFloat(formData.get('entryPrice')),
-                exitPrice: parseFloat(formData.get('exitPrice')),
+                entryPrice: parseFloat(formData.get('entryPrice').replace(',', '.')),
+                exitPrice: parseFloat(formData.get('exitPrice').replace(',', '.')),
                 quantity: parseInt(formData.get('quantity')),
-                result: parseFloat(formData.get('result')),
+                result: parseFloat(formData.get('result').replace(',', '.')),
                 currency: formData.get('currency'),
                 date: formData.get('date'),
                 timestamp: new Date().toISOString(),
@@ -831,10 +881,6 @@
             document.querySelectorAll('.quick-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById('result').style.borderColor = '';
             document.getElementById('conversionInfo').style.display = 'none';
-            
-            // Remover step para evitar conflitos
-            document.getElementById('entryPrice').removeAttribute('step');
-            document.getElementById('exitPrice').removeAttribute('step');
             
             // Resetar placeholders
             document.getElementById('entryPrice').placeholder = '25.50';
@@ -924,6 +970,11 @@
         function updateCalendar() {
             const calendar = document.getElementById('calendar');
             const monthYear = document.getElementById('currentMonth');
+            
+            if (!calendar || !monthYear) {
+                console.error('❌ Elementos do calendário não encontrados');
+                return;
+            }
             
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
@@ -1048,13 +1099,63 @@
             URL.revokeObjectURL(url);
         }
 
+        // Funções do tema escuro
+        function toggleTheme() {
+            const body = document.body;
+            const toggle = document.querySelector('.theme-toggle');
+            
+            body.classList.toggle('dark');
+            const isDark = body.classList.contains('dark');
+            
+            toggle.textContent = isDark ? '☀️' : '🌙';
+            localStorage.setItem('remoraThemeV2', isDark);
+        }
+
+        // Carregar tema salvo
+        function loadSavedTheme() {
+            const savedTheme = localStorage.getItem('remoraThemeV2');
+            if (savedTheme === 'true') {
+                document.body.classList.add('dark');
+                document.querySelector('.theme-toggle').textContent = '☀️';
+            }
+        }
+
+        // Funções de gerenciamento de ativos
+        function updateAssetsList() {
+            const datalist = document.getElementById('assetsList');
+            const allAssets = [...new Set([...defaultAssets, ...savedAssets])];
+            
+            datalist.innerHTML = allAssets.map(asset => 
+                `<option value="${asset.split(' - ')[0]}">${asset}</option>`
+            ).join('');
+        }
+
+        function saveNewAsset(symbol) {
+            const upperSymbol = symbol.toUpperCase();
+            const config = getAssetConfig(upperSymbol);
+            const assetEntry = `${upperSymbol} - ${config.name}`;
+            
+            // Verificar se o ativo já existe
+            const exists = savedAssets.some(asset => 
+                asset.toUpperCase().startsWith(upperSymbol)
+            ) || defaultAssets.some(asset => 
+                asset.toUpperCase().startsWith(upperSymbol)
+            );
+            
+            if (!exists) {
+                savedAssets.push(assetEntry);
+                localStorage.setItem('remoraAssetsV2', JSON.stringify(savedAssets));
+                updateAssetsList();
+            }
+        }
+
         // Inicialização
         loadSavedTheme();
         updateAssetsList();
         updateAccountSelector();
         updateDashboard();
         
-        console.log('🎯 REMORA TRADER v2.1 - Multi-conta com conversões corretas!');
+        console.log('🎯 REMORA TRADER v2.1 - Funcionando perfeitamente!');
     </script>
 </body>
 </html>
