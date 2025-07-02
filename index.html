@@ -553,9 +553,13 @@
                     <h2>➕ Novo Trade</h2>
                     
                     <form id="tradeForm">
+                        <div id="conversionInfo" style="display: none; background: #e8f5e8; border: 1px solid #4CAF50; border-radius: 8px; padding: 10px; margin-bottom: 15px; font-size: 0.9rem; color: #2e7d32;">
+                            <!-- Informações de conversão aparecerão aqui -->
+                        </div>
+                        
                         <div class="form-group">
                             <label for="symbol">Ativo</label>
-                            <input type="text" id="symbol" name="symbol" placeholder="Ex: PETR4, WINV25, BTCUSD" required>
+                            <input type="text" id="symbol" name="symbol" placeholder="Ex: PETR4, WDOQ25, BTCUSD" required>
                         </div>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
@@ -730,12 +734,52 @@
         let currentDate = new Date();
         let dailyPnL = {};
 
-        // Configurações de ativos
+        // Configurações de ativos - VALORES CORRETOS 2025
         const assetConfigs = {
-            'WINV25': { decimals: 3, pointValue: 0.20, currency: 'PTS', name: 'Mini Índice' },
+            // WIN - Mini Índice Bovespa (R$ 0,20 por ponto)
+            'WINV25': { decimals: 0, pointValue: 0.20, currency: 'PTS', name: 'Mini Índice' },
+            'WINJ25': { decimals: 0, pointValue: 0.20, currency: 'PTS', name: 'Mini Índice' },
+            'WINK25': { decimals: 0, pointValue: 0.20, currency: 'PTS', name: 'Mini Índice' },
+            'WINM25': { decimals: 0, pointValue: 0.20, currency: 'PTS', name: 'Mini Índice' },
+            'WINQ25': { decimals: 0, pointValue: 0.20, currency: 'PTS', name: 'Mini Índice' },
+            'WINZ25': { decimals: 0, pointValue: 0.20, currency: 'PTS', name: 'Mini Índice' },
+            
+            // WDO - Mini Dólar (R$ 10,00 por ponto) - CORRIGIDO!
             'WDOV25': { decimals: 3, pointValue: 10.00, currency: 'PTS', name: 'Mini Dólar' },
-            'BTCUSD': { decimals: 2, pointValue: 1, currency: 'USD', name: 'Bitcoin' },
+            'WDOJ25': { decimals: 3, pointValue: 10.00, currency: 'PTS', name: 'Mini Dólar' },
+            'WDOK25': { decimals: 3, pointValue: 10.00, currency: 'PTS', name: 'Mini Dólar' },
+            'WDOM25': { decimals: 3, pointValue: 10.00, currency: 'PTS', name: 'Mini Dólar' },
+            'WDOQ25': { decimals: 3, pointValue: 10.00, currency: 'PTS', name: 'Mini Dólar' },
+            'WDOZ25': { decimals: 3, pointValue: 10.00, currency: 'PTS', name: 'Mini Dólar' },
+            
+            // IND - Índice Cheio (R$ 1,00 por ponto)
+            'INDV25': { decimals: 0, pointValue: 1.00, currency: 'PTS', name: 'Índice Cheio' },
+            'INDJ25': { decimals: 0, pointValue: 1.00, currency: 'PTS', name: 'Índice Cheio' },
+            
+            // DOL - Dólar Cheio (R$ 50,00 por ponto)
+            'DOLV25': { decimals: 3, pointValue: 50.00, currency: 'PTS', name: 'Dólar Cheio' },
+            'DOLJ25': { decimals: 3, pointValue: 50.00, currency: 'PTS', name: 'Dólar Cheio' },
+            
+            // Commodities
+            'BGIV25': { decimals: 2, pointValue: 0.25, currency: 'PTS', name: 'Boi Gordo' },
+            'CCMV25': { decimals: 2, pointValue: 1.00, currency: 'PTS', name: 'Milho' },
+            'ICFV25': { decimals: 2, pointValue: 1.00, currency: 'PTS', name: 'Café' },
+            'ISOV25': { decimals: 2, pointValue: 0.50, currency: 'PTS', name: 'Soja' },
+            
+            // Forex (sem conversão - direto em pips)
             'EURUSD': { decimals: 5, pointValue: 1, currency: 'PIPS', name: 'Euro/Dólar' },
+            'GBPUSD': { decimals: 5, pointValue: 1, currency: 'PIPS', name: 'Libra/Dólar' },
+            'USDJPY': { decimals: 3, pointValue: 1, currency: 'PIPS', name: 'Dólar/Iene' },
+            'USDCAD': { decimals: 5, pointValue: 1, currency: 'PIPS', name: 'Dólar/Dólar Canadense' },
+            'AUDUSD': { decimals: 5, pointValue: 1, currency: 'PIPS', name: 'Dólar Australiano/Dólar' },
+            
+            // Crypto (sem conversão - direto em USD)
+            'BTCUSD': { decimals: 2, pointValue: 1, currency: 'USD', name: 'Bitcoin' },
+            'ETHUSD': { decimals: 2, pointValue: 1, currency: 'USD', name: 'Ethereum' },
+            'ADAUSD': { decimals: 4, pointValue: 1, currency: 'USD', name: 'Cardano' },
+            'SOLUSD': { decimals: 3, pointValue: 1, currency: 'USD', name: 'Solana' },
+            
+            // Ações brasileiras (direto em BRL)
             'default': { decimals: 2, pointValue: 1, currency: 'BRL', name: 'Ação' }
         };
 
@@ -1185,7 +1229,7 @@
         }
 
         function analyzeWyckoff(data) {
-            // Análise Wyckoff mais realista baseada no tipo de ativo
+            // Análise Wyckoff baseada em dados mais realistas
             const volumeRatio = data.volume / (data.volumes.reduce((a, b) => a + b, 0) / data.volumes.length);
             const pricePosition = (data.currentPrice - data.low24h) / (data.high24h - data.low24h);
             
@@ -1193,92 +1237,112 @@
             let signals = [];
             let phase = 'FASE A - PARADA DE TENDÊNCIA';
             
-            // Thresholds baseados no tipo de ativo
-            const highVolumeThreshold = data.symbol.includes('WIN') || data.symbol.includes('WDO') ? 2.0 : 1.8;
-            const springUpthrust = data.symbol.includes('WIN') ? 0.002 : // WIN: 0.2%
-                                 data.symbol.includes('WDO') ? 0.005 : // WDO: 0.5%
-                                 0.015; // Outros: 1.5%
+            // Thresholds mais realistas baseados no tipo de ativo
+            const highVolumeThreshold = data.symbol.includes('WIN') || data.symbol.includes('WDO') ? 1.8 : 1.5;
             
-            if (volumeRatio > highVolumeThreshold && pricePosition > 0.8) {
-                signals.push('UPTHRUST: Rompimento falso de resistência com volume alto - VENDA');
-                score -= 25;
-                phase = 'FASE C - TESTE';
-            } else if (volumeRatio > highVolumeThreshold && pricePosition < 0.2) {
-                signals.push('SPRING: Rompimento falso de suporte com volume alto - COMPRA');
-                score += 25;
-                phase = 'FASE C - TESTE';
-            } else if (volumeRatio > 1.5) {
-                if (data.variation5d > springUpthrust) {
-                    signals.push('ACUMULAÇÃO: Volume elevado com preço subindo');
-                    score += 15;
+            // Ajustar análise baseada no ativo específico
+            if (data.symbol.includes('WIN')) {
+                // WIN: Análise baseada em pontos
+                if (volumeRatio > highVolumeThreshold && pricePosition > 0.8) {
+                    signals.push('WYCKOFF: Volume climático próximo ao topo - possível UPTHRUST');
+                    score -= 20;
+                    phase = 'FASE C - TESTE';
+                } else if (volumeRatio > highVolumeThreshold && pricePosition < 0.2) {
+                    signals.push('WYCKOFF: Volume climático próximo ao fundo - possível SPRING');
+                    score += 20;
+                    phase = 'FASE C - TESTE';
+                }
+            } else if (data.symbol.includes('WDO')) {
+                // WDO: Análise específica para mini dólar
+                const currentTrend = data.variation5d > 0 ? 'ALTA' : 'BAIXA';
+                if (volumeRatio > 2.0) {
+                    signals.push(`WYCKOFF: Volume institucional elevado - tendência ${currentTrend} com força`);
+                    score += data.variation5d > 0 ? 15 : -15;
                     phase = 'FASE B - CONSTRUÇÃO';
-                } else if (data.variation5d < -springUpthrust) {
-                    signals.push('DISTRIBUIÇÃO: Volume elevado com preço caindo');
-                    score -= 15;
+                }
+                
+                // Dólar tem característica de correlação inversa com mercado
+                if (Math.abs(data.variation5d) > 0.02) {
+                    signals.push('WYCKOFF: Movimento significativo no câmbio - atenção a fatores macro');
+                    score += Math.abs(data.variation5d) > 0.03 ? 10 : 5;
+                }
+            } else {
+                // Análise genérica para outros ativos
+                if (volumeRatio > 1.8 && Math.abs(data.variation5d) > 0.03) {
+                    const direction = data.variation5d > 0 ? 'ACUMULAÇÃO' : 'DISTRIBUIÇÃO';
+                    signals.push(`WYCKOFF: ${direction} detectada - volume e preço alinhados`);
+                    score += data.variation5d > 0 ? 15 : -15;
                     phase = 'FASE B - CONSTRUÇÃO';
                 }
             }
             
-            // Identificar mudança de caráter para futuros brasileiros
-            if (data.symbol.includes('WIN') || data.symbol.includes('WDO')) {
-                if (Math.abs(data.variation5d) > 0.01 && volumeRatio > 1.8) {
-                    const direction = data.variation5d > 0 ? 'BULLISH' : 'BEARISH';
-                    signals.push(`WYCKOFF: Mudança de caráter detectada - Viés ${direction}`);
-                    score += data.variation5d > 0 ? 10 : -10;
-                }
+            // Análise de absorção de volume
+            if (volumeRatio > 1.5 && Math.abs(data.variation5d) < 0.01) {
+                signals.push('WYCKOFF: Volume alto com pouco movimento - possível absorção');
+                score += 10;
+                phase = 'FASE A - PARADA DE TENDÊNCIA';
             }
             
             return { score, signals, phase };
         }
 
         function analyzeSmartMoney(data) {
-            // Smart Money Concepts baseado em dados mais realistas
+            // SMC mais realista baseado no tipo de ativo
             let score = 0;
             let signals = [];
             let structure = 'SIDEWAYS';
             
+            // Definir níveis mais realistas por tipo de ativo
+            let orderBlockDistance, liquidityThreshold;
+            
+            if (data.symbol.includes('WIN')) {
+                orderBlockDistance = 100; // 100 pontos para WIN
+                liquidityThreshold = 0.005; // 0.5% para WIN
+            } else if (data.symbol.includes('WDO')) {
+                orderBlockDistance = 0.050; // 5 centavos para WDO
+                liquidityThreshold = 0.008; // 0.8% para WDO
+            } else if (data.symbol.includes('USD')) {
+                orderBlockDistance = data.currentPrice * 0.001; // 0.1% para Forex/Crypto
+                liquidityThreshold = 0.015; // 1.5% para Forex/Crypto
+            } else {
+                orderBlockDistance = data.currentPrice * 0.01; // 1% para ações
+                liquidityThreshold = 0.02; // 2% para ações
+            }
+            
             const priceRange = data.high24h - data.low24h;
             const currentPosition = (data.currentPrice - data.low24h) / priceRange;
             
-            // Order Blocks mais realistas baseados no tipo de ativo
-            const orderBlockDistance = data.symbol.includes('WIN') ? 200 : // WIN: 200 pontos
-                                     data.symbol.includes('WDO') ? 0.020 : // WDO: 20 centavos  
-                                     data.symbol.includes('USD') ? 0.005 : // Forex: 5 pips
-                                     data.currentPrice * 0.01; // Ações: 1%
-            
-            if (currentPosition > 0.7) {
+            // Order Blocks baseados em níveis técnicos reais
+            if (currentPosition > 0.75) {
                 const orderBlockLevel = data.high24h - orderBlockDistance;
                 signals.push(`SMC: Preço próximo a Order Block BEARISH - VENDA em ${formatPrice(orderBlockLevel, data.unit, data.decimals)}`);
                 score -= 15;
                 structure = 'BEARISH';
-            } else if (currentPosition < 0.3) {
+            } else if (currentPosition < 0.25) {
                 const orderBlockLevel = data.low24h + orderBlockDistance;
                 signals.push(`SMC: Preço próximo a Order Block BULLISH - COMPRA em ${formatPrice(orderBlockLevel, data.unit, data.decimals)}`);
                 score += 15;
                 structure = 'BULLISH';
             }
             
-            // Liquidity Sweep baseado na variação e tipo de ativo
-            const significantMove = data.symbol.includes('WIN') ? 0.003 : // WIN: 0.3%
-                                  data.symbol.includes('WDO') ? 0.01 :  // WDO: 1%
-                                  0.02; // Outros: 2%
-            
-            if (data.variation5d > significantMove) {
+            // Liquidity Sweeps baseados na volatilidade do ativo
+            if (data.variation5d > liquidityThreshold) {
                 signals.push('SMC: Liquidity Sweep BULLISH detectado - Smart Money comprou depois de pegar stops');
-                score += 20;
+                score += 18;
                 structure = 'BULLISH';
-            } else if (data.variation5d < -significantMove) {
+                signals.push('SMC: Estrutura BULLISH confirmada (HH/HL)');
+            } else if (data.variation5d < -liquidityThreshold) {
                 signals.push('SMC: Liquidity Sweep BEARISH detectado - Smart Money vendeu depois de pegar stops');
-                score -= 20;
+                score -= 18;
                 structure = 'BEARISH';
+                signals.push('SMC: Estrutura BEARISH confirmada (LL/LH)');
             }
             
-            // Confirmar estrutura baseada na tendência
-            if (Math.abs(data.variation5d) > significantMove/2) {
-                if (data.variation5d > 0) {
-                    signals.push('SMC: Estrutura BULLISH confirmada (HH/HL)');
-                } else {
-                    signals.push('SMC: Estrutura BEARISH confirmada (LL/LH)');
+            // Análise de Market Structure específica por ativo
+            if (data.symbol.includes('WDO')) {
+                // Dólar tem correlações específicas
+                if (Math.abs(data.variation5d) > 0.015) {
+                    signals.push('SMC: Movimento significativo no câmbio - acompanhar notícias macro');
                 }
             }
             
@@ -1957,23 +2021,55 @@
             document.getElementById('exitPrice').addEventListener('input', calculateResult);
             document.getElementById('quantity').addEventListener('input', calculateResult);
             document.getElementById('operationType').addEventListener('change', calculateResult);
+            document.getElementById('symbol').addEventListener('input', onSymbolChange);
             
             // Carregar dados salvos
             loadSavedTheme();
             updateDashboard();
             
-            console.log('🚀 REMORA TRADER v3.2 - Sistema Completo Carregado!');
+            console.log('🚀 REMORA TRADER v3.3 - Sistema Completo Carregado!');
             console.log('📊 Funcionalidades: Diário + Análise Multi-Confluência');
             console.log('🔍 Metodologias: Wyckoff, SMC, Elliott, Price Action, Fundamentalista');
-            console.log('💡 ATUALIZAÇÃO v3.2:');
-            console.log('   ✅ Calendário visual com P&L diário');
-            console.log('   ✅ Botões de exclusão nos trades');
-            console.log('   • Preços realistas baseados no mercado atual');
-            console.log('   • Formatação correta por tipo de ativo');
-            console.log('   • WIN: pontos | WDO: pontos | Ações: R$ | Crypto: US$ | Forex: pips');
-            console.log('📈 Exemplo: WINQ25 = ~141.100 pontos');
-            console.log('⚙️ Para dados 100% reais: integrar APIs (Alpha Vantage, etc.)');
+            console.log('💡 ATUALIZAÇÃO v3.3:');
+            console.log('   ✅ Dados realistas integrados com trades do usuário');
+            console.log('   ✅ Conversão correta: WDO = R$ 10,00/ponto | WIN = R$ 0,20/ponto');
+            console.log('   ✅ Análise técnica baseada nos preços reais dos trades');
+            console.log('   ✅ Formatação adequada por tipo de ativo');
+            console.log('📈 Exemplo: WDOQ25 em 5.650 pontos = R$ 56,50 por ponto de movimento');
+            console.log('⚙️ Para dados 100% em tempo real: integrar APIs de mercado');
         });
+
+        function onSymbolChange() {
+            const symbol = document.getElementById('symbol').value.toUpperCase();
+            const config = assetConfigs[symbol] || assetConfigs['default'];
+            
+            // Atualizar placeholders baseado no tipo de ativo
+            if (symbol.includes('WIN')) {
+                document.getElementById('entryPrice').placeholder = '141100';
+                document.getElementById('exitPrice').placeholder = '141200';
+            } else if (symbol.includes('WDO')) {
+                document.getElementById('entryPrice').placeholder = '5.650';
+                document.getElementById('exitPrice').placeholder = '5.680';
+            } else if (symbol.includes('USD') && !symbol.includes('BRL')) {
+                if (symbol.includes('BTC')) {
+                    document.getElementById('entryPrice').placeholder = '102500';
+                    document.getElementById('exitPrice').placeholder = '103000';
+                } else if (symbol.includes('ETH')) {
+                    document.getElementById('entryPrice').placeholder = '3280';
+                    document.getElementById('exitPrice').placeholder = '3320';
+                } else {
+                    // Forex
+                    document.getElementById('entryPrice').placeholder = '1.0385';
+                    document.getElementById('exitPrice').placeholder = '1.0395';
+                }
+            } else {
+                // Ações brasileiras
+                document.getElementById('entryPrice').placeholder = '35.50';
+                document.getElementById('exitPrice').placeholder = '36.00';
+            }
+            
+            calculateResult();
+        }
     </script>
 </body>
 </html>
