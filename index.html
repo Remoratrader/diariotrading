@@ -11,6 +11,21 @@
             box-sizing: border-box;
         }
 
+        function updateCustomValuesButton() {
+            const btn = document.getElementById('customValuesBtn');
+            const customCount = Object.keys(customPointValues).length;
+            
+            if (customCount > 0) {
+                btn.textContent = `⚙️ Valores Configurados (${customCount})`;
+                btn.style.background = '#4CAF50';
+                btn.style.color = 'white';
+            } else {
+                btn.textContent = '⚙️ Valores Configurados';
+                btn.style.background = '';
+                btn.style.color = '';
+            }
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -459,6 +474,45 @@
             .main-content {
                 grid-template-columns: 1fr;
             }
+        }
+
+        function showCustomValues() {
+            const customCount = Object.keys(customPointValues).length;
+            
+            if (customCount === 0) {
+                alert('Nenhum valor personalizado configurado ainda.\n\nPara configurar:\n1. Digite um ativo (ex: WDOV25)\n2. Clique em "⚙️ Configurar" na mensagem de conversão');
+                return;
+            }
+            
+            let message = '⚙️ VALORES PERSONALIZADOS CONFIGURADOS:\n\n';
+            Object.keys(customPointValues).forEach(symbol => {
+                const value = customPointValues[symbol];
+                message += `${symbol}: R$ ${value.toFixed(2)} por ponto\n`;
+            });
+            
+            message += '\n' + '='.repeat(40) + '\n';
+            message += 'Opções:\n';
+            message += '✅ OK - Fechar\n';
+            message += '🗑️ RESET - Apagar todos os valores personalizados';
+            
+            const action = confirm(message + '\n\nClique OK para fechar ou CANCELAR para resetar tudo');
+            
+            if (!action) {
+                const confirmReset = confirm('🚨 ATENÇÃO!\n\nIsto apagará TODOS os valores personalizados configurados.\n\nTem certeza?');
+                if (confirmReset) {
+                    customPointValues = {};
+                    localStorage.removeItem('remoraCustomPoints');
+                    updateCustomValuesButton();
+                    alert('✅ Todos os valores personalizados foram removidos!');
+                    
+                    // Atualizar interface se houver ativo selecionado
+                    const currentSymbol = document.getElementById('symbol').value;
+                    if (currentSymbol) {
+                        onSymbolChange();
+                        calculateResult();
+                    }
+                }
+            }
             
             .form-row {
                 grid-template-columns: 1fr;
@@ -564,6 +618,7 @@
                 </div>
 
                 <button class="btn btn-secondary" onclick="exportData()">📥 Baixar Backup</button>
+                <button class="btn btn-secondary" onclick="showCustomValues()" id="customValuesBtn">⚙️ Valores Configurados</button>
             </div>
 
             <div class="dashboard">
@@ -609,28 +664,53 @@
             throw new Error('Unauthorized domain');
         }
 
-        // Configurações de conversão
+        // Configurações de conversão (valores atualizados 2025)
         const assetConfigs = {
-            // Mini Índice Bovespa
+            // Mini Índice Bovespa (WIN)
             'WINV25': { decimals: 3, pointValue: 0.20, currency: 'PTS', name: 'Mini Índice' },
             'WINJ25': { decimals: 3, pointValue: 0.20, currency: 'PTS', name: 'Mini Índice' },
             'WINK25': { decimals: 3, pointValue: 0.20, currency: 'PTS', name: 'Mini Índice' },
             'WINM25': { decimals: 3, pointValue: 0.20, currency: 'PTS', name: 'Mini Índice' },
+            'WINU25': { decimals: 3, pointValue: 0.20, currency: 'PTS', name: 'Mini Índice' },
+            'WINZ25': { decimals: 3, pointValue: 0.20, currency: 'PTS', name: 'Mini Índice' },
             
-            // Mini Dólar
-            'WDOV25': { decimals: 3, pointValue: 0.50, currency: 'PTS', name: 'Mini Dólar' },
-            'WDOJ25': { decimals: 3, pointValue: 0.50, currency: 'PTS', name: 'Mini Dólar' },
-            'WDOK25': { decimals: 3, pointValue: 0.50, currency: 'PTS', name: 'Mini Dólar' },
-            'WDOM25': { decimals: 3, pointValue: 0.50, currency: 'PTS', name: 'Mini Dólar' },
+            // Índice Cheio (IND)
+            'INDV25': { decimals: 3, pointValue: 1.00, currency: 'PTS', name: 'Índice Cheio' },
+            'INDJ25': { decimals: 3, pointValue: 1.00, currency: 'PTS', name: 'Índice Cheio' },
             
-            // Forex (Pips)
+            // Mini Dólar (WDO) - Valor padrão atualizado
+            'WDOV25': { decimals: 3, pointValue: 1.00, currency: 'PTS', name: 'Mini Dólar' },
+            'WDOJ25': { decimals: 3, pointValue: 1.00, currency: 'PTS', name: 'Mini Dólar' },
+            'WDOK25': { decimals: 3, pointValue: 1.00, currency: 'PTS', name: 'Mini Dólar' },
+            'WDOM25': { decimals: 3, pointValue: 1.00, currency: 'PTS', name: 'Mini Dólar' },
+            'WDOU25': { decimals: 3, pointValue: 1.00, currency: 'PTS', name: 'Mini Dólar' },
+            'WDOZ25': { decimals: 3, pointValue: 1.00, currency: 'PTS', name: 'Mini Dólar' },
+            
+            // Dólar Cheio (DOL)
+            'DOLV25': { decimals: 3, pointValue: 5.00, currency: 'PTS', name: 'Dólar Cheio' },
+            'DOLJ25': { decimals: 3, pointValue: 5.00, currency: 'PTS', name: 'Dólar Cheio' },
+            
+            // Mini Euro (EUR)
+            'EURV25': { decimals: 3, pointValue: 0.625, currency: 'PTS', name: 'Mini Euro' },
+            
+            // Commodities
+            'BGIV25': { decimals: 2, pointValue: 0.25, currency: 'PTS', name: 'Boi Gordo' },
+            'CCMV25': { decimals: 2, pointValue: 1.00, currency: 'PTS', name: 'Milho' },
+            'ICFV25': { decimals: 2, pointValue: 1.00, currency: 'PTS', name: 'Café' },
+            'ISOV25': { decimals: 2, pointValue: 0.50, currency: 'PTS', name: 'Soja' },
+            
+            // Forex (Pips) - Valores por lote padrão
             'EURUSD': { decimals: 5, pointValue: 1, currency: 'PIPS', name: 'Euro/Dólar' },
             'GBPUSD': { decimals: 5, pointValue: 1, currency: 'PIPS', name: 'Libra/Dólar' },
             'USDJPY': { decimals: 3, pointValue: 1, currency: 'PIPS', name: 'Dólar/Iene' },
+            'USDCAD': { decimals: 5, pointValue: 1, currency: 'PIPS', name: 'Dólar/Dólar Canadense' },
+            'AUDUSD': { decimals: 5, pointValue: 1, currency: 'PIPS', name: 'Dólar Australiano/Dólar' },
             
             // Crypto
             'BTCUSD': { decimals: 2, pointValue: 1, currency: 'USD', name: 'Bitcoin' },
             'ETHUSD': { decimals: 2, pointValue: 1, currency: 'USD', name: 'Ethereum' },
+            'ADAUSD': { decimals: 4, pointValue: 1, currency: 'USD', name: 'Cardano' },
+            'SOLUSD': { decimals: 3, pointValue: 1, currency: 'USD', name: 'Solana' },
             
             // Ações brasileiras (padrão)
             'default': { decimals: 2, pointValue: 1, currency: 'BRL', name: 'Ação' }
@@ -642,6 +722,7 @@
         let currentDate = new Date();
         let dailyPnL = {};
         let savedAssets = JSON.parse(localStorage.getItem('remoraAssetsV2') || '[]');
+        let customPointValues = JSON.parse(localStorage.getItem('remoraCustomPoints') || '{}');
 
         // Assets padrão
         const defaultAssets = [
@@ -652,11 +733,17 @@
             'MGLU3 - Magazine Luiza',
             'WINV25 - Mini Índice',
             'WDOV25 - Mini Dólar',
+            'DOLV25 - Dólar Cheio',
             'EURV25 - Mini Euro',
+            'BGIV25 - Boi Gordo',
+            'CCMV25 - Milho',
+            'ICFV25 - Café',
+            'ISOV25 - Soja',
             'BTCUSD - Bitcoin',
             'ETHUSD - Ethereum',
             'EURUSD - Euro/Dólar',
-            'GBPUSD - Libra/Dólar'
+            'GBPUSD - Libra/Dólar',
+            'USDJPY - Dólar/Iene'
         ];
 
         // Configurar data de hoje
@@ -672,7 +759,52 @@
 
         function getAssetConfig(symbol) {
             const upperSymbol = symbol.toUpperCase();
-            return assetConfigs[upperSymbol] || assetConfigs['default'];
+            let config = { ...(assetConfigs[upperSymbol] || assetConfigs['default']) };
+            
+            // Aplicar valor customizado se existir
+            if (customPointValues[upperSymbol]) {
+                config.pointValue = customPointValues[upperSymbol];
+            }
+            
+            return config;
+        }
+
+        function configurePointValue() {
+            const symbol = document.getElementById('symbol').value.toUpperCase();
+            if (!symbol) {
+                alert('Digite um ativo primeiro!');
+                return;
+            }
+            
+            const config = getAssetConfig(symbol);
+            const currentValue = config.pointValue;
+            
+            const newValue = prompt(
+                `🔧 CONFIGURAR VALOR DO PONTO\n\n` +
+                `Ativo: ${symbol} (${config.name})\n` +
+                `Valor atual: R$ ${currentValue.toFixed(2)} por ponto\n\n` +
+                `Exemplo: Se 10 pontos = R$ 140,00\n` +
+                `Então: R$ 140 ÷ 10 = R$ 14,00 por ponto\n\n` +
+                `Digite o novo valor por ponto:`,
+                currentValue.toFixed(2)
+            );
+            
+            if (newValue !== null && newValue.trim() !== '') {
+                const parsedValue = parseFloat(newValue.replace(',', '.'));
+                if (!isNaN(parsedValue) && parsedValue > 0) {
+                    customPointValues[symbol] = parsedValue;
+                    localStorage.setItem('remoraCustomPoints', JSON.stringify(customPointValues));
+                    
+                    // Atualizar a interface
+                    onSymbolChange();
+                    calculateResult();
+                    updateCustomValuesButton();
+                    
+                    alert(`✅ CONFIGURADO COM SUCESSO!\n\n${symbol}: R$ ${parsedValue.toFixed(2)} por ponto\n\nAgora o cálculo será feito automaticamente com este valor.`);
+                } else {
+                    alert('❌ Valor inválido! Digite um número positivo.');
+                }
+            }
         }
 
         function onSymbolChange() {
@@ -697,7 +829,8 @@
             // Mostrar info de conversão
             if (config.pointValue !== 1 && config.currency === 'PTS') {
                 conversionInfo.style.display = 'block';
-                conversionInfo.innerHTML = `💡 ${config.name}: 1 ponto = R$ ${config.pointValue.toFixed(2)}`;
+                const isCustom = customPointValues[symbol] ? ' (personalizado)' : '';
+                conversionInfo.innerHTML = `💡 ${config.name}: 1 ponto = R$ ${config.pointValue.toFixed(2)}${isCustom} <button type="button" onclick="configurePointValue()" style="background: #667eea; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; margin-left: 10px;">⚙️ Configurar</button>`;
             } else {
                 conversionInfo.style.display = 'none';
             }
@@ -1153,9 +1286,16 @@
         loadSavedTheme();
         updateAssetsList();
         updateAccountSelector();
+        updateCustomValuesButton();
         updateDashboard();
         
-        console.log('🎯 REMORA TRADER v2.1 - Funcionando perfeitamente!');
+        console.log('🎯 REMORA TRADER v2.2 - Com configuração personalizada de pontos!');
+        console.log('📋 Valores padrão atualizados para 2025:');
+        console.log('- Mini Índice (WIN): R$ 0,20/ponto');
+        console.log('- Mini Dólar (WDO): R$ 1,00/ponto');
+        console.log('- Dólar Cheio (DOL): R$ 5,00/ponto');
+        console.log('💡 DICA: Se sua corretora usa valores diferentes,');
+        console.log('   digite o ativo e clique "⚙️ Configurar" para personalizar!');
     </script>
 </body>
 </html>
