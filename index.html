@@ -11,21 +11,6 @@
             box-sizing: border-box;
         }
 
-        function updateCustomValuesButton() {
-            const btn = document.getElementById('customValuesBtn');
-            const customCount = Object.keys(customPointValues).length;
-            
-            if (customCount > 0) {
-                btn.textContent = `⚙️ Valores Configurados (${customCount})`;
-                btn.style.background = '#4CAF50';
-                btn.style.color = 'white';
-            } else {
-                btn.textContent = '⚙️ Valores Configurados';
-                btn.style.background = '';
-                btn.style.color = '';
-            }
-        }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -474,45 +459,6 @@
             .main-content {
                 grid-template-columns: 1fr;
             }
-        }
-
-        function showCustomValues() {
-            const customCount = Object.keys(customPointValues).length;
-            
-            if (customCount === 0) {
-                alert('Nenhum valor personalizado configurado ainda.\n\nPara configurar:\n1. Digite um ativo (ex: WDOV25)\n2. Clique em "⚙️ Configurar" na mensagem de conversão');
-                return;
-            }
-            
-            let message = '⚙️ VALORES PERSONALIZADOS CONFIGURADOS:\n\n';
-            Object.keys(customPointValues).forEach(symbol => {
-                const value = customPointValues[symbol];
-                message += `${symbol}: R$ ${value.toFixed(2)} por ponto\n`;
-            });
-            
-            message += '\n' + '='.repeat(40) + '\n';
-            message += 'Opções:\n';
-            message += '✅ OK - Fechar\n';
-            message += '🗑️ RESET - Apagar todos os valores personalizados';
-            
-            const action = confirm(message + '\n\nClique OK para fechar ou CANCELAR para resetar tudo');
-            
-            if (!action) {
-                const confirmReset = confirm('🚨 ATENÇÃO!\n\nIsto apagará TODOS os valores personalizados configurados.\n\nTem certeza?');
-                if (confirmReset) {
-                    customPointValues = {};
-                    localStorage.removeItem('remoraCustomPoints');
-                    updateCustomValuesButton();
-                    alert('✅ Todos os valores personalizados foram removidos!');
-                    
-                    // Atualizar interface se houver ativo selecionado
-                    const currentSymbol = document.getElementById('symbol').value;
-                    if (currentSymbol) {
-                        onSymbolChange();
-                        calculateResult();
-                    }
-                }
-            }
             
             .form-row {
                 grid-template-columns: 1fr;
@@ -664,7 +610,7 @@
             throw new Error('Unauthorized domain');
         }
 
-        // Configurações de conversão (valores atualizados 2025)
+        // Configurações de conversão (valores corrigidos 2025)
         const assetConfigs = {
             // Mini Índice Bovespa (WIN)
             'WINV25': { decimals: 3, pointValue: 0.20, currency: 'PTS', name: 'Mini Índice' },
@@ -678,19 +624,19 @@
             'INDV25': { decimals: 3, pointValue: 1.00, currency: 'PTS', name: 'Índice Cheio' },
             'INDJ25': { decimals: 3, pointValue: 1.00, currency: 'PTS', name: 'Índice Cheio' },
             
-            // Mini Dólar (WDO) - Valor padrão atualizado
-            'WDOV25': { decimals: 3, pointValue: 1.00, currency: 'PTS', name: 'Mini Dólar' },
-            'WDOJ25': { decimals: 3, pointValue: 1.00, currency: 'PTS', name: 'Mini Dólar' },
-            'WDOK25': { decimals: 3, pointValue: 1.00, currency: 'PTS', name: 'Mini Dólar' },
-            'WDOM25': { decimals: 3, pointValue: 1.00, currency: 'PTS', name: 'Mini Dólar' },
-            'WDOU25': { decimals: 3, pointValue: 1.00, currency: 'PTS', name: 'Mini Dólar' },
-            'WDOZ25': { decimals: 3, pointValue: 1.00, currency: 'PTS', name: 'Mini Dólar' },
+            // Mini Dólar (WDO) - Valor correto R$ 10,00 por ponto
+            'WDOV25': { decimals: 3, pointValue: 10.00, currency: 'PTS', name: 'Mini Dólar' },
+            'WDOJ25': { decimals: 3, pointValue: 10.00, currency: 'PTS', name: 'Mini Dólar' },
+            'WDOK25': { decimals: 3, pointValue: 10.00, currency: 'PTS', name: 'Mini Dólar' },
+            'WDOM25': { decimals: 3, pointValue: 10.00, currency: 'PTS', name: 'Mini Dólar' },
+            'WDOU25': { decimals: 3, pointValue: 10.00, currency: 'PTS', name: 'Mini Dólar' },
+            'WDOZ25': { decimals: 3, pointValue: 10.00, currency: 'PTS', name: 'Mini Dólar' },
             
-            // Dólar Cheio (DOL)
-            'DOLV25': { decimals: 3, pointValue: 5.00, currency: 'PTS', name: 'Dólar Cheio' },
-            'DOLJ25': { decimals: 3, pointValue: 5.00, currency: 'PTS', name: 'Dólar Cheio' },
+            // Dólar Cheio (DOL) - Valor correto R$ 50,00 por ponto
+            'DOLV25': { decimals: 3, pointValue: 50.00, currency: 'PTS', name: 'Dólar Cheio' },
+            'DOLJ25': { decimals: 3, pointValue: 50.00, currency: 'PTS', name: 'Dólar Cheio' },
             
-            // Mini Euro (EUR)
+            // Mini Euro (EUR) - Mantém valor padrão
             'EURV25': { decimals: 3, pointValue: 0.625, currency: 'PTS', name: 'Mini Euro' },
             
             // Commodities
@@ -756,6 +702,60 @@
         document.getElementById('quantity').addEventListener('input', calculateResult);
         document.getElementById('symbol').addEventListener('input', onSymbolChange);
         document.getElementById('accountSelect').addEventListener('change', switchAccount);
+
+        function updateCustomValuesButton() {
+            const btn = document.getElementById('customValuesBtn');
+            const customCount = Object.keys(customPointValues).length;
+            
+            if (customCount > 0) {
+                btn.textContent = `⚙️ Valores Configurados (${customCount})`;
+                btn.style.background = '#4CAF50';
+                btn.style.color = 'white';
+            } else {
+                btn.textContent = '⚙️ Valores Configurados';
+                btn.style.background = '';
+                btn.style.color = '';
+            }
+        }
+
+        function showCustomValues() {
+            const customCount = Object.keys(customPointValues).length;
+            
+            if (customCount === 0) {
+                alert('Nenhum valor personalizado configurado ainda.\n\nPara configurar:\n1. Digite um ativo (ex: WDOV25)\n2. Clique em "⚙️ Configurar" na mensagem de conversão');
+                return;
+            }
+            
+            let message = '⚙️ VALORES PERSONALIZADOS CONFIGURADOS:\n\n';
+            Object.keys(customPointValues).forEach(symbol => {
+                const value = customPointValues[symbol];
+                message += `${symbol}: R$ ${value.toFixed(2)} por ponto\n`;
+            });
+            
+            message += '\n' + '='.repeat(40) + '\n';
+            message += 'Opções:\n';
+            message += '✅ OK - Fechar\n';
+            message += '🗑️ RESET - Apagar todos os valores personalizados';
+            
+            const action = confirm(message + '\n\nClique OK para fechar ou CANCELAR para resetar tudo');
+            
+            if (!action) {
+                const confirmReset = confirm('🚨 ATENÇÃO!\n\nIsto apagará TODOS os valores personalizados configurados.\n\nTem certeza?');
+                if (confirmReset) {
+                    customPointValues = {};
+                    localStorage.removeItem('remoraCustomPoints');
+                    updateCustomValuesButton();
+                    alert('✅ Todos os valores personalizados foram removidos!');
+                    
+                    // Atualizar interface se houver ativo selecionado
+                    const currentSymbol = document.getElementById('symbol').value;
+                    if (currentSymbol) {
+                        onSymbolChange();
+                        calculateResult();
+                    }
+                }
+            }
+        }
 
         function getAssetConfig(symbol) {
             const upperSymbol = symbol.toUpperCase();
@@ -1290,10 +1290,11 @@
         updateDashboard();
         
         console.log('🎯 REMORA TRADER v2.2 - Com configuração personalizada de pontos!');
-        console.log('📋 Valores padrão atualizados para 2025:');
+        console.log('📋 Valores corretos atualizados para 2025:');
         console.log('- Mini Índice (WIN): R$ 0,20/ponto');
-        console.log('- Mini Dólar (WDO): R$ 1,00/ponto');
-        console.log('- Dólar Cheio (DOL): R$ 5,00/ponto');
+        console.log('- Mini Dólar (WDO): R$ 10,00/ponto');
+        console.log('- Índice Cheio (IND): R$ 1,00/ponto');
+        console.log('- Dólar Cheio (DOL): R$ 50,00/ponto');
         console.log('💡 DICA: Se sua corretora usa valores diferentes,');
         console.log('   digite o ativo e clique "⚙️ Configurar" para personalizar!');
     </script>
