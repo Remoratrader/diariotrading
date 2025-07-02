@@ -36,6 +36,133 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
+        .account-selector {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .account-selector select {
+            padding: 8px 15px;
+            border-radius: 5px;
+            border: none;
+            font-size: 1rem;
+        }
+
+        .account-selector button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            padding: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+
+        .privacy-note {
+            background: #e8f5e8;
+            border: 1px solid #4CAF50;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: #2e7d32;
+        }
+
+        .privacy-note strong {
+            color: #1b5e20;
+        }
+
+        /* Dark mode styles */
+        body.dark {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+        }
+
+        .dark .form-card,
+        .dark .dashboard {
+            background: #2c2c54;
+            color: #e0e0e0;
+        }
+
+        .dark .metric-card {
+            background: linear-gradient(135deg, #3c3c6e 0%, #2c2c54 100%);
+            border-color: #4a4a7a;
+        }
+
+        .dark .calendar-container {
+            background: #3c3c6e;
+            border-color: #4a4a7a;
+        }
+
+        .dark .form-group input,
+        .dark .form-group select {
+            background: #3c3c6e;
+            border-color: #4a4a7a;
+            color: #e0e0e0;
+        }
+
+        .dark .form-group input:focus,
+        .dark .form-group select:focus {
+            border-color: #667eea;
+        }
+
+        .dark .trade-item {
+            background: #3c3c6e;
+            color: #e0e0e0;
+        }
+
+        .dark .quick-btn {
+            background: #3c3c6e;
+            border-color: #4a4a7a;
+            color: #e0e0e0;
+        }
+
+        .dark .quick-btn:hover {
+            background: #4a4a7a;
+            border-color: #667eea;
+        }
+
+        .dark .privacy-note {
+            background: #2c4a2c;
+            border-color: #4CAF50;
+            color: #81c784;
+        }
+
+        .dark .theme-toggle {
+            background: rgba(44,44,84,0.9);
+            color: #e0e0e0;
+        }
+
+        .dark .account-selector {
+            background: rgba(44,44,84,0.3);
+        }
+
         .main-content {
             display: grid;
             grid-template-columns: 1fr 2fr;
@@ -96,6 +223,16 @@
         .btn-secondary {
             background: #e0e8ff;
             color: #667eea;
+        }
+
+        .conversion-info {
+            background: #e8f5e8;
+            border: 1px solid #4CAF50;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: #2e7d32;
         }
 
         .metrics-grid {
@@ -318,16 +455,35 @@
     </style>
 </head>
 <body>
+    <button class="theme-toggle" onclick="toggleTheme()" title="Alternar tema">🌙</button>
+    
     <div class="container">
         <div class="header">
             <h1>📊 DIÁRIO DE TRADE</h1>
             <h2 style="font-size: 1.5rem; margin-bottom: 10px;">REMORA TRADER</h2>
             <p>Registre seus trades e acompanhe sua performance</p>
+            
+            <div class="account-selector">
+                <label style="color: white; font-weight: bold;">📈 Conta/Corretora:</label>
+                <select id="accountSelect">
+                    <option value="principal">Principal</option>
+                </select>
+                <button onclick="addAccount()">➕ Nova Conta</button>
+                <button onclick="deleteAccount()" style="background: #ff4757;">🗑️</button>
+            </div>
         </div>
 
         <div class="main-content">
             <div class="form-card">
+                <div class="privacy-note">
+                    <strong>🔒 100% Privado:</strong> Seus dados ficam apenas no seu dispositivo. Nós nunca temos acesso às suas informações de trading. Funciona offline!
+                </div>
+
                 <h2>➕ Novo Trade</h2>
+                
+                <div class="conversion-info" id="conversionInfo" style="display: none;">
+                    💡 Este ativo será convertido automaticamente para Reais
+                </div>
                 
                 <div class="quick-buttons">
                     <div class="quick-btn" onclick="quickSelect('profit')">✅ Lucro</div>
@@ -337,7 +493,10 @@
                 <form id="tradeForm">
                     <div class="form-group">
                         <label for="symbol">Ativo</label>
-                        <input type="text" id="symbol" name="symbol" placeholder="Ex: PETR4, WINV25, BTCUSD" required>
+                        <input type="text" id="symbol" name="symbol" placeholder="Ex: PETR4, WINV25, BTCUSD" list="assetsList" required>
+                        <datalist id="assetsList">
+                            <!-- Assets will be populated dynamically -->
+                        </datalist>
                     </div>
 
                     <div class="form-row">
@@ -354,7 +513,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="quantity">Quantidade</label>
-                            <input type="number" id="quantity" name="quantity" placeholder="100" required>
+                            <input type="number" id="quantity" name="quantity" placeholder="1" required>
                         </div>
                         <div class="form-group">
                             <label for="currency">Unidade</label>
@@ -369,7 +528,7 @@
 
                     <div class="form-group">
                         <label for="result">Resultado</label>
-                        <input type="number" id="result" name="result" step="0.01" placeholder="50.00" required>
+                        <input type="number" id="result" name="result" step="0.01" placeholder="50.00" required readonly>
                     </div>
 
                     <div class="form-group">
@@ -434,10 +593,55 @@
             throw new Error('Unauthorized domain');
         }
 
+        // Configurações de conversão
+        const assetConfigs = {
+            // Mini Índice Bovespa
+            'WINV25': { decimals: 3, pointValue: 0.20, currency: 'PTS', name: 'Mini Índice' },
+            'WINJ25': { decimals: 3, pointValue: 0.20, currency: 'PTS', name: 'Mini Índice' },
+            'WINK25': { decimals: 3, pointValue: 0.20, currency: 'PTS', name: 'Mini Índice' },
+            'WINM25': { decimals: 3, pointValue: 0.20, currency: 'PTS', name: 'Mini Índice' },
+            
+            // Mini Dólar
+            'WDOV25': { decimals: 3, pointValue: 0.50, currency: 'PTS', name: 'Mini Dólar' },
+            'WDOJ25': { decimals: 3, pointValue: 0.50, currency: 'PTS', name: 'Mini Dólar' },
+            'WDOK25': { decimals: 3, pointValue: 0.50, currency: 'PTS', name: 'Mini Dólar' },
+            'WDOM25': { decimals: 3, pointValue: 0.50, currency: 'PTS', name: 'Mini Dólar' },
+            
+            // Forex (Pips)
+            'EURUSD': { decimals: 5, pointValue: 1, currency: 'PIPS', name: 'Euro/Dólar' },
+            'GBPUSD': { decimals: 5, pointValue: 1, currency: 'PIPS', name: 'Libra/Dólar' },
+            'USDJPY': { decimals: 3, pointValue: 1, currency: 'PIPS', name: 'Dólar/Iene' },
+            
+            // Crypto
+            'BTCUSD': { decimals: 2, pointValue: 1, currency: 'USD', name: 'Bitcoin' },
+            'ETHUSD': { decimals: 2, pointValue: 1, currency: 'USD', name: 'Ethereum' },
+            
+            // Ações brasileiras (padrão)
+            'default': { decimals: 2, pointValue: 1, currency: 'BRL', name: 'Ação' }
+        };
+
         // Variáveis globais
-        let trades = JSON.parse(localStorage.getItem('remoraTradesV2') || '[]');
+        let currentAccount = 'principal';
+        let allAccountsData = JSON.parse(localStorage.getItem('remoraAccountsV2') || '{"principal": []}');
         let currentDate = new Date();
         let dailyPnL = {};
+        let savedAssets = JSON.parse(localStorage.getItem('remoraAssetsV2') || '[]');
+
+        // Assets padrão
+        const defaultAssets = [
+            'PETR4 - Petrobras',
+            'VALE3 - Vale',
+            'ITUB4 - Itaú',
+            'BBDC4 - Bradesco',
+            'MGLU3 - Magazine Luiza',
+            'WINV25 - Mini Índice',
+            'WDOV25 - Mini Dólar',
+            'EURV25 - Mini Euro',
+            'BTCUSD - Bitcoin',
+            'ETHUSD - Ethereum',
+            'EURUSD - Euro/Dólar',
+            'GBPUSD - Libra/Dólar'
+        ];
 
         // Configurar data de hoje
         document.getElementById('date').valueAsDate = new Date();
@@ -447,25 +651,138 @@
         document.getElementById('exitPrice').addEventListener('input', calculateResult);
         document.getElementById('entryPrice').addEventListener('input', calculateResult);
         document.getElementById('quantity').addEventListener('input', calculateResult);
+        document.getElementById('symbol').addEventListener('input', onSymbolChange);
+        document.getElementById('accountSelect').addEventListener('change', switchAccount);
+
+        function getAssetConfig(symbol) {
+            const upperSymbol = symbol.toUpperCase();
+            return assetConfigs[upperSymbol] || assetConfigs['default'];
+        }
+
+        function calculateResult() {
+            const entryPrice = parseFloat(document.getElementById('entryPrice').value) || 0;
+            const exitPrice = parseFloat(document.getElementById('exitPrice').value) || 0;
+            const quantity = parseFloat(document.getElementById('quantity').value) || 0;
+            const symbol = document.getElementById('symbol').value.toUpperCase();
+            const config = getAssetConfig(symbol);
+            
+            if (entryPrice && exitPrice && quantity) {
+                // Calcular diferença em pontos/pips
+                let pointDifference = (exitPrice - entryPrice) * quantity;
+                
+                // Aplicar conversão se necessário
+                let finalResult = pointDifference;
+                if (config.pointValue !== 1) {
+                    finalResult = pointDifference * config.pointValue;
+                }
+                
+                // Definir precisão baseada no tipo de resultado
+                const precision = (config.currency === 'PTS' || config.currency === 'PIPS') ? 2 : 2;
+                document.getElementById('result').value = finalResult.toFixed(precision);
+                
+                // Auto-selecionar profit/loss
+                if (finalResult > 0) {
+                    quickSelect('profit');
+                } else if (finalResult < 0) {
+                    quickSelect('loss');
+                }
+            }
+        }
+
+        function addAccount() {
+            const name = prompt('Nome da nova conta/corretora:');
+            if (name && name.trim()) {
+                const accountKey = name.trim().toLowerCase().replace(/\s+/g, '_');
+                if (!allAccountsData[accountKey]) {
+                    allAccountsData[accountKey] = [];
+                    localStorage.setItem('remoraAccountsV2', JSON.stringify(allAccountsData));
+                    updateAccountSelector();
+                    
+                    // Selecionar a nova conta
+                    document.getElementById('accountSelect').value = accountKey;
+                    switchAccount();
+                } else {
+                    alert('Já existe uma conta com esse nome!');
+                }
+            }
+        }
+
+        function deleteAccount() {
+            if (currentAccount === 'principal') {
+                alert('Não é possível excluir a conta principal!');
+                return;
+            }
+            
+            if (confirm(`Excluir a conta "${currentAccount}" e todos os seus dados?`)) {
+                delete allAccountsData[currentAccount];
+                localStorage.setItem('remoraAccountsV2', JSON.stringify(allAccountsData));
+                
+                // Voltar para conta principal
+                currentAccount = 'principal';
+                document.getElementById('accountSelect').value = 'principal';
+                updateAccountSelector();
+                updateDashboard();
+            }
+        }
+
+        function updateAccountSelector() {
+            const select = document.getElementById('accountSelect');
+            const currentValue = select.value;
+            
+            select.innerHTML = '';
+            
+            Object.keys(allAccountsData).forEach(accountKey => {
+                const option = document.createElement('option');
+                option.value = accountKey;
+                option.textContent = accountKey.charAt(0).toUpperCase() + accountKey.slice(1).replace(/_/g, ' ');
+                select.appendChild(option);
+            });
+            
+            // Restaurar seleção se possível
+            if (allAccountsData[currentValue]) {
+                select.value = currentValue;
+            }
+        }
+
+        function switchAccount() {
+            currentAccount = document.getElementById('accountSelect').value;
+            updateDashboard();
+        }
+
+        function getCurrentTrades() {
+            return allAccountsData[currentAccount] || [];
+        }
+
+        function saveCurrentTrades(trades) {
+            allAccountsData[currentAccount] = trades;
+            localStorage.setItem('remoraAccountsV2', JSON.stringify(allAccountsData));
+        }
 
         function handleSubmit(e) {
             e.preventDefault();
             
             const formData = new FormData(e.target);
+            const symbol = formData.get('symbol').toUpperCase();
+            const config = getAssetConfig(symbol);
+            
             const trade = {
                 id: Date.now(),
-                symbol: formData.get('symbol').toUpperCase(),
+                symbol: symbol,
                 entryPrice: parseFloat(formData.get('entryPrice')),
                 exitPrice: parseFloat(formData.get('exitPrice')),
                 quantity: parseInt(formData.get('quantity')),
                 result: parseFloat(formData.get('result')),
                 currency: formData.get('currency'),
                 date: formData.get('date'),
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(),
+                account: currentAccount,
+                pointValue: config.pointValue,
+                assetType: config.name
             };
 
+            const trades = getCurrentTrades();
             trades.push(trade);
-            localStorage.setItem('remoraTradesV2', JSON.stringify(trades));
+            saveCurrentTrades(trades);
             
             updateDashboard();
             clearForm();
@@ -499,29 +816,17 @@
             document.getElementById('date').valueAsDate = new Date();
             document.querySelectorAll('.quick-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById('result').style.borderColor = '';
-        }
-
-        function calculateResult() {
-            const entryPrice = parseFloat(document.getElementById('entryPrice').value) || 0;
-            const exitPrice = parseFloat(document.getElementById('exitPrice').value) || 0;
-            const quantity = parseFloat(document.getElementById('quantity').value) || 0;
+            document.getElementById('conversionInfo').style.display = 'none';
             
-            if (entryPrice && exitPrice && quantity) {
-                const result = (exitPrice - entryPrice) * quantity;
-                document.getElementById('result').value = result.toFixed(2);
-                
-                if (result > 0) {
-                    quickSelect('profit');
-                } else if (result < 0) {
-                    quickSelect('loss');
-                }
-            }
+            // Reset step
+            document.getElementById('entryPrice').step = '0.01';
+            document.getElementById('exitPrice').step = '0.01';
         }
 
         function deleteTrade(id) {
             if (confirm('Excluir este trade?')) {
-                trades = trades.filter(trade => trade.id !== id);
-                localStorage.setItem('remoraTradesV2', JSON.stringify(trades));
+                const trades = getCurrentTrades().filter(trade => trade.id !== id);
+                saveCurrentTrades(trades);
                 updateDashboard();
             }
         }
@@ -535,6 +840,7 @@
 
         function calculateDailyPnL() {
             dailyPnL = {};
+            const trades = getCurrentTrades();
             trades.forEach(trade => {
                 const date = trade.date;
                 if (!dailyPnL[date]) {
@@ -545,6 +851,7 @@
         }
 
         function updateMetrics() {
+            const trades = getCurrentTrades();
             const totalResult = trades.reduce((sum, trade) => sum + trade.result, 0);
             const wins = trades.filter(trade => trade.result > 0).length;
             const winRate = trades.length > 0 ? (wins / trades.length) * 100 : 0;
@@ -559,6 +866,7 @@
 
         function updateTradesList() {
             const container = document.getElementById('tradesContainer');
+            const trades = getCurrentTrades();
             
             if (trades.length === 0) {
                 container.innerHTML = '<p style="text-align: center; color: #666; margin: 20px 0;">Nenhum trade registrado ainda</p>';
@@ -567,23 +875,32 @@
 
             const lastTrades = trades.slice(-5).reverse();
             
-            container.innerHTML = lastTrades.map(trade => `
-                <div class="trade-item ${trade.result >= 0 ? 'profit' : 'loss'}">
-                    <div class="trade-info">
-                        <div class="trade-symbol">${trade.symbol}</div>
-                        <div class="trade-details">
-                            ${formatDate(trade.date)} • ${trade.quantity}x • 
-                            ${trade.entryPrice.toFixed(2)} → ${trade.exitPrice.toFixed(2)}
+            container.innerHTML = lastTrades.map(trade => {
+                // Mostrar resultado original + conversão se aplicável
+                let resultDisplay = formatCurrency(trade.result, trade.currency);
+                if (trade.pointValue && trade.pointValue !== 1) {
+                    const pointResult = trade.result / trade.pointValue;
+                    resultDisplay += ` (${pointResult.toFixed(1)} pts)`;
+                }
+                
+                return `
+                    <div class="trade-item ${trade.result >= 0 ? 'profit' : 'loss'}">
+                        <div class="trade-info">
+                            <div class="trade-symbol">${trade.symbol}</div>
+                            <div class="trade-details">
+                                ${formatDate(trade.date)} • ${trade.quantity}x • 
+                                ${trade.entryPrice.toFixed(getAssetConfig(trade.symbol).decimals)} → ${trade.exitPrice.toFixed(getAssetConfig(trade.symbol).decimals)}
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <div class="trade-result ${trade.result >= 0 ? 'positive' : 'negative'}">
+                                ${resultDisplay}
+                            </div>
+                            <button class="delete-btn" onclick="deleteTrade(${trade.id})">🗑️</button>
                         </div>
                     </div>
-                    <div style="display: flex; align-items: center;">
-                        <div class="trade-result ${trade.result >= 0 ? 'positive' : 'negative'}">
-                            ${formatCurrency(trade.result, trade.currency)}
-                        </div>
-                        <button class="delete-btn" onclick="deleteTrade(${trade.id})">🗑️</button>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function updateCalendar() {
@@ -679,7 +996,7 @@
                     }).format(value);
                     
                 case 'PTS':
-                    return `${prefix}${absValue.toFixed(short ? 0 : 1)} pts`;
+                    return `R$ ${value.toFixed(2)}`;
                     
                 case 'PIPS':
                     return `${prefix}${absValue.toFixed(short ? 0 : 1)} pips`;
@@ -696,9 +1013,10 @@
 
         function exportData() {
             const data = {
-                trades: trades,
+                allAccounts: allAccountsData,
+                currentAccount: currentAccount,
                 exportDate: new Date().toISOString(),
-                version: '2.0'
+                version: '2.1'
             };
             
             const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
@@ -706,16 +1024,19 @@
             
             const a = document.createElement('a');
             a.href = url;
-            a.download = `remora-trades-${new Date().toISOString().split('T')[0]}.json`;
+            a.download = `remora-trades-${currentAccount}-${new Date().toISOString().split('T')[0]}.json`;
             a.click();
             
             URL.revokeObjectURL(url);
         }
 
         // Inicialização
+        loadSavedTheme();
+        updateAssetsList();
+        updateAccountSelector();
         updateDashboard();
         
-        console.log('🎯 REMORA TRADER v70 - Carregado com sucesso!');
+        console.log('🎯 REMORA TRADER v2.1 - Multi-conta com conversões corretas!');
     </script>
 </body>
 </html>
